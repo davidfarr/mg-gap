@@ -60,7 +60,7 @@ namespace mg_gap
 
             //start stopwatch on operation
             Stopwatch stopwatch = new Stopwatch();
-            Console.WriteLine("Table build started at { 0}", DateTime.Now);
+            Console.WriteLine("Table build started at {0}", DateTime.Now);
             stopwatch.Start();
 
 
@@ -299,7 +299,7 @@ namespace mg_gap
 
             //stop stopwatch
             stopwatch.Stop();
-            Console.WriteLine("Table build time: { 0}", stopwatch.Elapsed);
+            Console.WriteLine("Table build time: {0}", stopwatch.Elapsed);
             Console.WriteLine("Table includes " + num_snps.ToString() + " SNPs.");
             Console.WriteLine("Sampling/genotyping variance " + Var_snp_specific / num_snps + ".");
             Console.WriteLine("Identified the following as sets of unique genetic sets:");

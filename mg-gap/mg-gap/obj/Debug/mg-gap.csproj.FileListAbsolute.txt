@@ -1,1 +1,6 @@
 N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\mg-gap\bin\Debug\mg-gap.exe.config
+N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\mg-gap\bin\Debug\mg-gap.exe
+N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\mg-gap\bin\Debug\mg-gap.pdb
+N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.csprojResolveAssemblyReference.cache
+N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.exe
+N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.pdb
