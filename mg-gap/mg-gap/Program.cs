@@ -18,13 +18,13 @@ namespace v1_gap
             //set up the filepath - in this version it's hard-coded
             //string vcf_path = "/Users/david/Documents/School/Biology Research/Pilot Program/2_Python program and input files/Ali.vcf";
             //string vcf_path = "/Users/david/Desktop/chrom4.vcf";
-            string vcf_path = "/Users/david/Desktop/Ali.vcf";
+            string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/ali.vcf";
             ArrayList passedLines = new ArrayList();
             ArrayList qCqTLines = new ArrayList();
 
             //more set-up
             //in1 is the chisq file
-            string in1 = "/Users/david/Documents/School/Biology Research/Pilot Program/2_Python program and input files/chisq.txt";
+            string in1 = "N:/app dev/scoville research/program files/dev migration for windows/python/chisq.txt";
             //choose the first to compare, in this case it's S.rmdup.bam
             int initialWindow = 1; //SNP window, equivalent to 'S' in Kelly script
             var extraSpecial_B = (6.0 * initialWindow);
