@@ -465,6 +465,9 @@ namespace v1_gap
             //{
             //	Console.WriteLine("GenWin file completed, created result file.");
             //}
+
+            //force to wait before closing
+            Console.ReadKey();
         }
     }
 }
