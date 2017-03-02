@@ -1,33 +1,37 @@
 ﻿using System;
-using System.Collections;
 using System.Data;
-using System.Diagnostics;
+using System.Collections;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
+using System.Linq;
+using RDotNet;
+using RDotNet.NativeLibrary;
 
 
-namespace mg_gap
+namespace v1_gap
 {
-    class Program
+    class MainClass
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             //set up the filepath - in this version it's hard-coded
-            string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/ali.vcf";
-            //string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/chrom4.vcf";
+            //string vcf_path = "/Users/david/Documents/School/Biology Research/Pilot Program/2_Python program and input files/Ali.vcf";
+            //string vcf_path = "/Users/david/Desktop/chrom4.vcf";
+            string vcf_path = "/Users/david/Desktop/Ali.vcf";
             ArrayList passedLines = new ArrayList();
             ArrayList qCqTLines = new ArrayList();
 
             //more set-up
             //in1 is the chisq file
-            string in1 = "N:/app dev/scoville research/program files/dev migration for windows/python/chisq.txt";
+            string in1 = "/Users/david/Documents/School/Biology Research/Pilot Program/2_Python program and input files/chisq.txt";
             //choose the first to compare, in this case it's S.rmdup.bam
-            int initialWindow = 1;
+            int initialWindow = 1; //SNP window, equivalent to 'S' in Kelly script
             var extraSpecial_B = (6.0 * initialWindow);
             var Min_reads = 20;
             ArrayList LineID = new ArrayList();
             ArrayList Locations = new ArrayList();
-            var Var_neutral = 0.0844026674093 - 0.0515598702709;
+            var Var_neutral = 0.0;
             //focus is not to make a file out of the results of the vcf parse but do make an arraylist that has the info
             ArrayList resultsList = new ArrayList(); //out0 in old script
             ArrayList vzList = new ArrayList(); //out1 in old script
@@ -53,6 +57,9 @@ namespace mg_gap
             ArrayList q_C = new ArrayList();
             ArrayList q_T = new ArrayList();
 
+            //in new edition
+            ArrayList accepted_snps = new ArrayList();
+
             var C_count = 0;
             ArrayList C_dat = new ArrayList();
             var T_count = 0;
@@ -63,7 +70,7 @@ namespace mg_gap
             Console.WriteLine("Table build started at {0}", DateTime.Now);
             stopwatch.Start();
 
-
+            //garbagecollector cannot allocate enough space to complete the table read.
             using (var fileStream = File.OpenRead(vcf_path))
             using (var streamReader = new StreamReader(fileStream))
             {
@@ -102,7 +109,7 @@ namespace mg_gap
                                     int scaffnum = int.Parse(scaffstring);
                                     if (scaffnum < 5 && scaffnum > 3) //modified to only allow scaff 4+
                                     {
-                                        //Console.WriteLine("scaffnum < 15 (" + scaffnum + ")"); 
+                                        //Console.WriteLine("scaffnum < 15 (" + scaffnum + ")");										
                                         //in the right scaffold range
                                         if (!string.IsNullOrEmpty(rowdata[3].ToString()) || !string.IsNullOrEmpty(rowdata[4].ToString()))
                                         {
@@ -210,13 +217,12 @@ namespace mg_gap
                                                         var var_T = 1.0 / qT[1];
 
                                                         Var_snp_specific += (var_C + var_T); //is this really appending?
-                                                        var vdiv = Var_neutral + var_C + var_T;
+
+                                                        //updated
                                                         var diverge = 2.0 * (Math.Asin(Math.Pow(qT_hat, 0.5)) - Math.Asin(Math.Pow(qC_hat, 0.5)));
                                                         resultsList.Add(rowdata[0] + '\t' + rowdata[1] + '\t' + qC[1].ToString() +
-                                                        '\t' + qC_hat.ToString() + '\t' + qT[1].ToString() +
-                                                        '\t' + qT_hat.ToString() + '\t' + diverge.ToString() +
-                                                        '\t' + vdiv.ToString() + '\t' +
-                                                        (diverge / (Math.Pow(vdiv, 0.5))).ToString() + '\n');
+                                                                 '\t' + qC_hat.ToString() + '\t' + qT[1].ToString() +
+                                                                        '\t' + qT_hat.ToString() + '\t' + diverge.ToString() + '\n');
                                                         Random rnd = new Random();
                                                         if (rnd.Next(1, 3) == 1)
                                                         {
@@ -226,10 +232,11 @@ namespace mg_gap
                                                         {
                                                             zraw.Add(-diverge);
                                                         }
-                                                        z_std.Add(diverge / (Math.Pow(vdiv, 0.5)));
+                                                        accepted_snps.Add(rowdata[0] + "_" + rowdata[1] + "\t" + var_C + "\t" + var_T);
+                                                        //z_std.Add(diverge / (Math.Pow(vdiv, 0.5)));
                                                         q_T.Add(qT_hat);
                                                         q_C.Add(qC_hat);
-                                                        zList.Add(diverge / (Math.Pow(vdiv, 0.5)) + '\n');
+                                                        //zList.Add(diverge / (Math.Pow(vdiv, 0.5)) + '\n');
                                                     }
                                                     else
                                                     {
@@ -280,22 +287,23 @@ namespace mg_gap
             }
             //make text file of lines that were passed
             //create timestamp MMDDYYHHMM
-            using (StreamWriter passedFile = File.CreateText("Passed_Lines_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
-            {
-                passedFile.WriteLine("Passed a total of " + passedLines.Count);
-                foreach (string line in passedLines)
-                {
-                    passedFile.WriteLine(line);
-                }
-            }
-            using (StreamWriter qcqtFile = File.CreateText("qCqT_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
-            {
-                qcqtFile.WriteLine(qCqTLines.Count + " lines in file.");
-                foreach (string line in qCqTLines)
-                {
-                    qcqtFile.WriteLine(line.ToString());
-                }
-            }
+            //FOR DIAGNOSTICS
+            //using (StreamWriter passedFile = File.CreateText("Passed_Lines_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
+            //{
+            //	passedFile.WriteLine("Passed a total of " + passedLines.Count);
+            //	foreach (string line in passedLines)
+            //	{
+            //		passedFile.WriteLine(line);
+            //	}
+            //}
+            //using (StreamWriter qcqtFile = File.CreateText("qCqT_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
+            //{
+            //	qcqtFile.WriteLine(qCqTLines.Count + " lines in file.");
+            //	foreach (string line in qCqTLines)
+            //	{
+            //		qcqtFile.WriteLine(line.ToString());
+            //	}
+            //}
 
             //stop stopwatch
             stopwatch.Stop();
@@ -340,23 +348,124 @@ namespace mg_gap
                 }
                 var rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
                           Convert.ToDouble(percentiles[line_idx][1])) /
-                (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
+                    (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
                 bs.Add(rx);
                 line_idx++;
             }
 
+            //test bs list
+            //Console.WriteLine("Test: bs arraylist....");
+            //foreach (var line in bs)
+            //{
+            //	Console.WriteLine(line.ToString());
+            //}
+
             //continue
             zraw.Sort();
-            Console.WriteLine(num_snps.ToString());
             var n25 = zraw[num_snps / 4];
             var n50 = zraw[num_snps / 2];
             var n75 = zraw[3 * num_snps / 4];
+
+            //recalculate var_neutral
+            Var_neutral = (Math.Pow(((Convert.ToDouble(n75) - Convert.ToDouble(n25)) / 1.349), 2)) - Var_snp_specific / num_snps;
+
             Console.WriteLine("Z Percentiles " + n25 + ", " + n50 + ", " + n75);
             Console.WriteLine("Total varience in Z (based on IQR) " + (Math.Pow((Convert.ToDouble(n75) / 1.349 - Convert.ToDouble(n25) / 1.349), 2)));
             //conflict with scope for cols addint to vzllist (out1)
+            foreach (DataRow row in vcfTable.Rows)
+            {
+                vzList.Add(row[0] + "\t" + Var_snp_specific / num_snps + "\t" + (Math.Pow(((Convert.ToDouble(n75) - Convert.ToDouble(n25)) / 1.349), 2) + "\n"));
+            }
+            Console.WriteLine("Completed Vz list with " + vzList.Count + " rows.");
 
-            //wait for key press to end
-            Console.ReadKey();
+            //finish out rest of calculations to get to b* file output
+            ArrayList bRaw = new ArrayList();
+            ArrayList bLoc = new ArrayList();
+            //Console.WriteLine("Beginning zSpecial list...");
+            //for (int k = 1; k < num_snps; k++)
+            //{
+            //	if (k % 1 == 0 || k % 1 == 1/2)
+            //	{
+            //		double b = 0.0;
+            //		//j = snp window size 
+            //		for (int j = initialWindow; j > 0; j--)
+            //		{
+            //			b = (Math.Pow(Convert.ToDouble(z_std[k - j]), 2));
+            //			bLoc.Add(Locations[k]);
+            //			bRaw.Add(b);
+            //			if (b > extraSpecial_B)
+            //			{
+            //				//i = snp window size
+            //				for (int i = initialWindow; i > 0; i--)
+            //				{
+            //					zSpecialList.Add(Locations[k] + "\t" + b.ToString() + "\t" + z_std[k - 1 + j + 1].ToString() + "\t" + q_T[k - 1 + j + 1].ToString() + '\t' + q_C[k - 1 + j + 1].ToString() + "\n");
+            //				}
+            //			}
+            //		}
+            //	}
+            //}
+            //Console.WriteLine("Completed zSpecial list with " + zSpecialList.Count + " rows.");
+            //Console.WriteLine("Diagnostic row: \n" + zSpecialList[0].ToString());
+            bRaw.Sort();
+            //var bn25 = bRaw[Convert.ToInt32(bRaw.Count) / 4];
+            //var bn50 = bRaw[Convert.ToInt32(bRaw.Count) / 2];
+            //var bn75 = bRaw[Convert.ToInt32(3 * bRaw.Count / 4)];
+            //Console.WriteLine("B percentiles " + bn25.ToString() + "\t" + bn50.ToString() + "\t" + bn75.ToString());
+            //double b_skew = (Convert.ToDouble(bn75) + Convert.ToDouble(bn50) - 2 * Convert.ToDouble(bn50) / (Convert.ToDouble(bn75) - Convert.ToDouble(bn25)));
+            //Console.WriteLine("B Bowley skew " + b_skew.ToString());
+
+            //to be the combined list for output to file, mimics B1.txt files (sNNfold_x_bp \t bvalue)
+            ArrayList snnfoldblist = new ArrayList();
+
+            //run through all accepted snps to calculate standardized divergence^2 i.e. B for 1 snp window
+            ArrayList b_std = new ArrayList();
+            for (int k = 0; k < zraw.Count; k++)
+            {
+                //parse the accepted_snps line
+                string unparsed_line = accepted_snps[k].ToString();
+                string[] parsedarray = unparsed_line.Split('\t').ToArray();
+                var vdiv = Var_neutral + Convert.ToDouble(parsedarray[1]) + Convert.ToDouble(parsedarray[2]);
+                b_std.Add(Math.Pow((double)zraw[k], 2.0) / vdiv);
+                snnfoldblist.Add(parsedarray[0] + '\t' + (Math.Pow((double)zraw[k], 2.0) / vdiv));
+            }
+
+            using (StreamWriter bfile = File.CreateText("B" + initialWindow + "_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
+            {
+                foreach (var line in snnfoldblist)
+                {
+                    bfile.WriteLine(line);
+                }
+            }
+
+
+            //test R stuff
+            //var envPath = Environment.GetEnvironmentVariable("PATH");
+            //var rBinPath = @"/Users/david/Projects/v1_gap/v1_gap/bin/Debug/";
+            //Environment.SetEnvironmentVariable("PATH", envPath + Path.PathSeparator + rBinPath);
+            //using (REngine engine = REngine.GetInstance("RDotNet"))
+            //{
+            //	engine.Initialize();
+            //	NumericVector group1 = engine.CreateNumericVector(new double[] { 30.02, 29.99, 30.11, 29.97, 30.01, 29.99 });
+            //         	engine.SetSymbol("group1", group1);
+            //        		 // Direct parsing from R script.
+            //         	NumericVector group2 = engine.Evaluate("group2 <- c(29.89, 29.93, 29.72, 29.98, 30.02, 29.98)").AsNumeric();
+
+            //         	// Test difference of mean and get the P-value.
+            //         	GenericVector testResult = engine.Evaluate("t.test(group1, group2)").AsList();
+            //         	double testp = testResult["p.value"].AsNumeric().First();
+
+            //         	Console.WriteLine("Group1: [{0}]", string.Join(", ", group1));
+            //         	Console.WriteLine("Group2: [{0}]", string.Join(", ", group2));
+            //         	Console.WriteLine("P-value = {0:0.000}", testp);
+            //}
+
+            //engine.Evaluate(@source('/Users/david/Desktop/GenWin_script_12_29_2016)");
+            ////check if we recognize that the file has now been put there
+            //if (File.Exists(@"'/Users/david/Desktop/xxxxx"))
+            //{
+            //	Console.WriteLine("GenWin file completed, created result file.");
+            //}
         }
     }
 }
+
