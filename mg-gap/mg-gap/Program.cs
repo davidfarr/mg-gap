@@ -429,7 +429,8 @@ namespace v1_gap
                 snnfoldblist.Add(parsedarray[0] + '\t' + (Math.Pow((double)zraw[k], 2.0) / vdiv));
             }
 
-            using (StreamWriter bfile = File.CreateText("B" + initialWindow + "_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
+            //using (StreamWriter bfile = File.CreateText("B" + initialWindow + "_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
+            using (StreamWriter bfile = File.CreateText("B1.txt"))
             {
                 foreach (var line in snnfoldblist)
                 {
@@ -437,34 +438,21 @@ namespace v1_gap
                 }
             }
 
-
-            //test R stuff
-            //var envPath = Environment.GetEnvironmentVariable("PATH");
-            //var rBinPath = @"/Users/david/Projects/v1_gap/v1_gap/bin/Debug/";
-            //Environment.SetEnvironmentVariable("PATH", envPath + Path.PathSeparator + rBinPath);
-            //using (REngine engine = REngine.GetInstance("RDotNet"))
-            //{
-            //	engine.Initialize();
-            //	NumericVector group1 = engine.CreateNumericVector(new double[] { 30.02, 29.99, 30.11, 29.97, 30.01, 29.99 });
-            //         	engine.SetSymbol("group1", group1);
-            //        		 // Direct parsing from R script.
-            //         	NumericVector group2 = engine.Evaluate("group2 <- c(29.89, 29.93, 29.72, 29.98, 30.02, 29.98)").AsNumeric();
-
-            //         	// Test difference of mean and get the P-value.
-            //         	GenericVector testResult = engine.Evaluate("t.test(group1, group2)").AsList();
-            //         	double testp = testResult["p.value"].AsNumeric().First();
-
-            //         	Console.WriteLine("Group1: [{0}]", string.Join(", ", group1));
-            //         	Console.WriteLine("Group2: [{0}]", string.Join(", ", group2));
-            //         	Console.WriteLine("P-value = {0:0.000}", testp);
-            //}
-
-            //engine.Evaluate(@source('/Users/david/Desktop/GenWin_script_12_29_2016)");
-            ////check if we recognize that the file has now been put there
-            //if (File.Exists(@"'/Users/david/Desktop/xxxxx"))
-            //{
-            //	Console.WriteLine("GenWin file completed, created result file.");
-            //}
+            try
+            {
+                //test R stuff
+                REngine engine = REngine.GetInstance();
+                engine.Evaluate(@"source('N:\app dev\scoville research\program files\dev migration for windows\genwin\GenWin_script_12_29_2016)");
+                //check if we recognize that the file has now been put there
+                if (File.Exists(@"'N:\app dev\scoville research\program files\dev migration for windows\genwin\splinewindows.txt"))
+                {
+                    Console.WriteLine("GenWin file completed, created result file.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
             //force to wait before closing
             Console.ReadKey();
