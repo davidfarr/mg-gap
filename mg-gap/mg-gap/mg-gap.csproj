@@ -59,10 +59,12 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VcfParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="support files\GenWin_script_12_29_2016.R" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

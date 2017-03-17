@@ -19,6 +19,28 @@ namespace v1_gap
             //string vcf_path = "/Users/david/Documents/School/Biology Research/Pilot Program/2_Python program and input files/Ali.vcf";
             //string vcf_path = "/Users/david/Desktop/chrom4.vcf";
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/ali.vcf";
+
+            //run the vcf parser for SNP window of 1
+            Stopwatch methodTime = new Stopwatch();
+            methodTime.Start();
+            ArrayList bResult = mg_gap.VcfParser.b_processing(1, vcf_path);
+            methodTime.Stop();
+            Console.WriteLine(methodTime.Elapsed.ToString());
+            using (StreamWriter bfilenew = File.CreateText("B1_new.txt"))
+            {
+                foreach (var line in bResult)
+                {
+                    bfilenew.WriteLine(line);
+                }
+            }
+
+
+
+
+
+
+
+
             ArrayList passedLines = new ArrayList();
             ArrayList qCqTLines = new ArrayList();
 
@@ -70,7 +92,6 @@ namespace v1_gap
             Console.WriteLine("Table build started at {0}", DateTime.Now);
             stopwatch.Start();
 
-            //garbagecollector cannot allocate enough space to complete the table read.
             using (var fileStream = File.OpenRead(vcf_path))
             using (var streamReader = new StreamReader(fileStream))
             {
@@ -107,7 +128,8 @@ namespace v1_gap
                                     scaffstring = Regex.Replace(scaffstring, "[^$0-9.]", "");
                                     //Console.WriteLine(scaffstring);
                                     int scaffnum = int.Parse(scaffstring);
-                                    if (scaffnum < 5 && scaffnum > 3) //modified to only allow scaff 4+
+                                    //if (scaffnum < 5 && scaffnum > 3) //modified to only allow scaff 4+
+                                    if (scaffnum < 15) //modified to only allow scaff 1-14
                                     {
                                         //Console.WriteLine("scaffnum < 15 (" + scaffnum + ")");										
                                         //in the right scaffold range
@@ -288,22 +310,22 @@ namespace v1_gap
             //make text file of lines that were passed
             //create timestamp MMDDYYHHMM
             //FOR DIAGNOSTICS
-            //using (StreamWriter passedFile = File.CreateText("Passed_Lines_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
-            //{
-            //	passedFile.WriteLine("Passed a total of " + passedLines.Count);
-            //	foreach (string line in passedLines)
-            //	{
-            //		passedFile.WriteLine(line);
-            //	}
-            //}
-            //using (StreamWriter qcqtFile = File.CreateText("qCqT_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
-            //{
-            //	qcqtFile.WriteLine(qCqTLines.Count + " lines in file.");
-            //	foreach (string line in qCqTLines)
-            //	{
-            //		qcqtFile.WriteLine(line.ToString());
-            //	}
-            //}
+            using (StreamWriter passedFile = File.CreateText("Passed_Lines_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
+            {
+                passedFile.WriteLine("Passed a total of " + passedLines.Count);
+                foreach (string line in passedLines)
+                {
+                    passedFile.WriteLine(line);
+                }
+            }
+            using (StreamWriter qcqtFile = File.CreateText("qCqT_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
+            {
+                qcqtFile.WriteLine(qCqTLines.Count + " lines in file.");
+                foreach (string line in qCqTLines)
+                {
+                    qcqtFile.WriteLine(line.ToString());
+                }
+            }
 
             //stop stopwatch
             stopwatch.Stop();
@@ -430,31 +452,50 @@ namespace v1_gap
             }
 
             //using (StreamWriter bfile = File.CreateText("B" + initialWindow + "_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
-            using (StreamWriter bfile = File.CreateText("B1.txt"))
+            //set to save to desktop
+            //and make two copies just in case
+            string desktopPath = Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory);
+            using (StreamWriter bfile = File.CreateText(desktopPath + @"/B1.txt"))
             {
                 foreach (var line in snnfoldblist)
                 {
                     bfile.WriteLine(line);
                 }
             }
-
-            try
+            using (StreamWriter bfilebackup = File.CreateText("B1.txt"))
             {
-                //test R stuff
-                REngine engine = REngine.GetInstance();
-                engine.Evaluate(@"source('N:\app dev\scoville research\program files\dev migration for windows\genwin\GenWin_script_12_29_2016)");
-                //check if we recognize that the file has now been put there
-                if (File.Exists(@"'N:\app dev\scoville research\program files\dev migration for windows\genwin\splinewindows.txt"))
+                foreach (var line in snnfoldblist)
                 {
-                    Console.WriteLine("GenWin file completed, created result file.");
+                    bfilebackup.WriteLine(line);
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+
+                try
+                {
+                    //test R stuff
+                    Console.WriteLine("Beginning R execution");
+                    REngine engine = REngine.GetInstance();
+                    Console.WriteLine("Successfully created R engine instance. Evaluating script...");
+                    string rscriptpath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R";
+                    engine.Evaluate(@"source('" + rscriptpath + "')");
+                    Console.WriteLine("R exited successfully.");
+                    //check if we recognize that the file has now been put there
+                    if (File.Exists(@"'N:\\app dev\\scoville research\\program files\\dev migration for windows\\genwin\\splinewindows.txt"))
+                    {
+                        Console.WriteLine("GenWin file completed, created result file.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No finished file found.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
 
             //force to wait before closing
+            Console.WriteLine("Program complete, press any key to exit.");
             Console.ReadKey();
         }
     }
