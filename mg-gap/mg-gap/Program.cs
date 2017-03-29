@@ -17,9 +17,9 @@ namespace v1_gap
         public static void Main(string[] args)
         {
             //set up the filepath - in this version it's hard-coded
-            //string vcf_path = "/Users/david/Documents/School/Biology Research/Pilot Program/2_Python program and input files/Ali.vcf";
+            string vcf_path = "/Users/david/Desktop/Ali.vcf";
             //string vcf_path = "/Users/david/Desktop/chrom4.vcf";
-            string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/ali.vcf";
+            //string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/ali.vcf";
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
@@ -43,6 +43,7 @@ namespace v1_gap
             {
                 case "y":
                     {
+						//not recommended unless you're running 64 bit
                         ArrayList passedLines = new ArrayList();
                         ArrayList qCqTLines = new ArrayList();
 
