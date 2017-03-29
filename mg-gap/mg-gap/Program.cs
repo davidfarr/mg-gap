@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Linq;
+using System.Collections.Generic;
 using RDotNet;
 using RDotNet.NativeLibrary;
 
@@ -22,10 +23,11 @@ namespace v1_gap
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
+            Console.WriteLine("Starting B processing...");
             methodTime.Start();
-            ArrayList bResult = mg_gap.VcfParser.b_processing(1, vcf_path);
+            List<string> bResult = mg_gap.VcfParser.b_processing(1, vcf_path);
             methodTime.Stop();
-            Console.WriteLine(methodTime.Elapsed.ToString());
+            Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
             using (StreamWriter bfilenew = File.CreateText("B1_new.txt"))
             {
                 foreach (var line in bResult)
@@ -383,10 +385,13 @@ namespace v1_gap
                         //}
 
                         //continue
-                        zraw.Sort();
-                        var n25 = zraw[num_snps / 4];
-                        var n50 = zraw[num_snps / 2];
-                        var n75 = zraw[3 * num_snps / 4];
+                        //zraw.Sort();
+                        ArrayList z_ranked = zraw; //copy the zraw to z_ranked and then sort it for variances
+                        z_ranked.Sort();
+
+                        var n25 = z_ranked[num_snps / 4];
+                        var n50 = z_ranked[num_snps / 2];
+                        var n75 = z_ranked[3 * num_snps / 4];
 
                         //recalculate var_neutral
                         Var_neutral = (Math.Pow(((Convert.ToDouble(n75) - Convert.ToDouble(n25)) / 1.349), 2)) - Var_snp_specific / num_snps;
@@ -428,7 +433,7 @@ namespace v1_gap
                         //}
                         //Console.WriteLine("Completed zSpecial list with " + zSpecialList.Count + " rows.");
                         //Console.WriteLine("Diagnostic row: \n" + zSpecialList[0].ToString());
-                        bRaw.Sort();
+                       ////bRaw.Sort();
                         //var bn25 = bRaw[Convert.ToInt32(bRaw.Count) / 4];
                         //var bn50 = bRaw[Convert.ToInt32(bRaw.Count) / 2];
                         //var bn75 = bRaw[Convert.ToInt32(3 * bRaw.Count / 4)];
@@ -452,20 +457,21 @@ namespace v1_gap
                             //using (StreamWriter bfile = File.CreateText("B" + initialWindow + "_" + DateTime.Now.ToString("yyMMddHHmm") + ".txt"))
                             //set to save to desktop
                             //and make two copies just in case
-                            string desktopPath = Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory);
-                            using (StreamWriter bfile = File.CreateText(desktopPath + @"/B1.txt"))
+                            //string desktopPath = Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory);
+                            //using (StreamWriter bfile = File.CreateText(desktopPath + @"/B1.txt"))
+                            //{
+                            //    foreach (var line in snnfoldblist)
+                            //    {
+                            //        bfile.WriteLine(line);
+                            //    }
+                            //}
+                            
+                        }
+                        using (StreamWriter bfilebackup = File.CreateText("B1.txt"))
+                        {
+                            foreach (var line in snnfoldblist)
                             {
-                                foreach (var line in snnfoldblist)
-                                {
-                                    bfile.WriteLine(line);
-                                }
-                            }
-                            using (StreamWriter bfilebackup = File.CreateText("B1.txt"))
-                            {
-                                foreach (var line in snnfoldblist)
-                                {
-                                    bfilebackup.WriteLine(line);
-                                }
+                                bfilebackup.WriteLine(line);
                             }
                         }
                         break;
