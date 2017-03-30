@@ -20,6 +20,8 @@ namespace mg_gap
             List<string> raw_results = new List<string>(); //out0
             List<string> qCqTLines = new List<string>(); //for diagnostics
             List<string> diagnostic_log = new List<string>(); //for diagnostics
+            List<decimal> ranked_z = new List<decimal>();
+
 
             //set up counters
             int num_snps = 0;
@@ -155,7 +157,7 @@ namespace mg_gap
                                 C_dat array as follows: [ 5,0,8,1 ]
                                 T_dat array as follows: [ 2,2,4,1 ]
                                 */
-                                //Console.WriteLine("C_dat: [ " + string.Join(",", C_dat.ToArray()) + " ] count " + C_dat.Count() + "\nT_dat: [ " + string.Join(",", T_dat.ToArray()) + " ] count " + T_dat.Count());
+                                //Console.WriteLine("C_dat: [ " + string.Join(",", C_dat.ToArray()) + " ] count " + C_dat.Count() + "\nT_dat: [ " + string.Join(",", T_dat.ToArray()) + " ] count " + T_dat.Count() + "\n");
 
                                 if (C_count >= 0 && T_count >= 0) //this is the problem loop
                                 {
@@ -199,6 +201,7 @@ namespace mg_gap
                                         //double diverge = 2.0 * (Math.Asin(Math.Pow(qT_hat, 0.5)) - (Math.Asin(Math.Pow(qC_hat, 0.5))));
                                         if (diverge == 0)
                                         {
+                                            //Console.WriteLine(" Diverge = " + diverge + " " + cols[0] + "_" + cols[1]);
                                             diverge_0++;
                                         }
 
@@ -209,10 +212,12 @@ namespace mg_gap
                                         if (rnd.Next(1, 3) == 1)
                                         {
                                             zraw.Add(diverge);
+                                            ranked_z.Add(diverge);
                                         }
                                         else
                                         {
                                             zraw.Add(-diverge);
+                                            ranked_z.Add(-diverge);
                                         }
 
                                         //SNP accepted.
@@ -236,19 +241,21 @@ namespace mg_gap
             Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDecimal(num_snps)));
 
             //make the z, rankings
-            //zraw.Sort();
             //zraw UNSORTED is used for b so you have to do the ranked_z in another array
-            List<decimal> ranked_z = zraw;
             //confirm through console the length is the same
+            ranked_z.Sort();
             if (ranked_z.Count == zraw.Count)
             {
                 Console.WriteLine("Ranked Z and Z Raw verified equivalent length (" + ranked_z.Count + ")");
+                if (ranked_z[10].ToString() == zraw[10].ToString())
+                {
+                    Console.WriteLine("might be same");
+                }
             }
             else
             {
                 Console.WriteLine("Ranked Z and Z Raw not verified equivalent!");
             }
-            ranked_z.Sort();
 
             var n25 = ranked_z[num_snps / 4];
             var n50 = ranked_z[num_snps / 2];
