@@ -155,6 +155,7 @@ namespace mg_gap
                                 C_dat array as follows: [ 5,0,8,1 ]
                                 T_dat array as follows: [ 2,2,4,1 ]
                                 */
+                                //Console.WriteLine("C_dat: [ " + string.Join(",", C_dat.ToArray()) + " ] count " + C_dat.Count() + "\nT_dat: [ " + string.Join(",", T_dat.ToArray()) + " ] count " + T_dat.Count());
 
                                 if (C_count >= 0 && T_count >= 0) //this is the problem loop
                                 {
