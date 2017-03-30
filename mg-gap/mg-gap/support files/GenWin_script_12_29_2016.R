@@ -14,7 +14,7 @@ library(GenWin) #for spline-based window analysis
 #Set appropriate working directory and read in B1.txt file containing B* values based on a window size of 1
 #Note: B1.txt is output from JK's python script
 setwd("N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
-file <- read.table("B1.txt", header=FALSE)
+file <- read.table("B1_new.txt", header=FALSE)
   
 #give the file appropriate column names
 # colnames(file) <- c("Scaffoldraw","B","Bs","P") #this was original
@@ -52,7 +52,7 @@ for(input in CHRnames){
   window1 <- window1[order(window1$BP),]
   
   #use GenWin program to identify windows.  We may want to try different smoothness levels
-  spline <- splineAnalyze(Y=window1$Bs,map=window1$BP,smoothness=100, plotRaw=TRUE,plotWindows=TRUE,method=4)
+  spline <- splineAnalyze(Y=window1$B,map=window1$BP,smoothness=100, plotRaw=TRUE,plotWindows=TRUE,method=4)
   
   #add a column to the spline$windowData output to identify the chromosome under consideration
   CHRcol <- rep(input,dim(spline$windowData)[1])

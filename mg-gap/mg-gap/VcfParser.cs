@@ -21,6 +21,7 @@ namespace mg_gap
             List<string> qCqTLines = new List<string>(); //for diagnostics
             List<string> diagnostic_log = new List<string>(); //for diagnostics
             List<decimal> ranked_z = new List<decimal>();
+            List<string> qcqthat_same = new List<string>();
 
 
             //set up counters
@@ -108,7 +109,7 @@ namespace mg_gap
                                 //ArrayList T_dat = new ArrayList();
                                 List<decimal> T_dat = new List<decimal> { };
 
-                                for (int j = 9; j < 9 + 5; j++)
+                                for (int j = 9; j < 9 + 5; j++) //line 76 in python
                                 {
                                     if (cols.Length < (9 + 5))
                                     {
@@ -159,7 +160,8 @@ namespace mg_gap
                                 */
                                 //Console.WriteLine("C_dat: [ " + string.Join(",", C_dat.ToArray()) + " ] count " + C_dat.Count() + "\nT_dat: [ " + string.Join(",", T_dat.ToArray()) + " ] count " + T_dat.Count() + "\n");
 
-                                if (C_count >= 0 && T_count >= 0) //this is the problem loop
+                                //if (C_count >= 0 && T_count >= 0) //this is the problem loop
+                                if (C_count > 0 && T_count > 0) //this is the problem loop edited w/JK this whole thing should be iterated a number of times per snp
                                 {
 
                                     decimal qC_0 = (decimal)0.0;
@@ -170,8 +172,8 @@ namespace mg_gap
                                     for (int i = 0; i < C_dat.Count / 2; i++)
                                     {
                                         decimal m = C_dat[2 * i] + C_dat[2 * i + 1];
-                                        qC_0 += C_dat[2 * i];
-                                        qC_1 += m;
+                                        qC_0 += C_dat[2 * i]; //ref base
+                                        qC_1 += m; //ref + alt base
                                     }
 
                                     for (int i = 0; i < T_dat.Count / 2; i++)
@@ -190,8 +192,18 @@ namespace mg_gap
                                         //skipping output for yut file
                                         Locations.Add(cols[0] + "_" + cols[1]);
                                         num_snps++;
+                                        //qC_hat and qT_hat should be different almost all of the time
                                         decimal qC_hat = qC_0 / qC_1;
                                         decimal qT_hat = qT_0 / qT_1;
+
+                                        //if (qC_hat == qT_hat) //this catches any time qC_hat and qT_hat are the same - which shouldn't really happen
+                                        //{
+                                        //    qcqthat_same.Add(cols[0] + "_" + cols[1] + " \nqC_0 / qC_1 = " + qC_0 + " / " + qC_1 + " = " + qC_hat + " = qC_hat" + "\n" +
+                                        //        "qT_0 / qT_1 = " + qT_0 + " / " + qT_1 + " = " + qT_hat + " = qT_hat \n");
+                                        //    Console.WriteLine(cols[0] + "_" + cols[1] + " \nqC_0 / qC_1 = " + qC_0 + " / " + qC_1 + " = " + qC_hat + " = qC_hat" + "\n" +
+                                        //        "qT_0 / qT_1 = " + qT_0 + " / " + qT_1 + " = " + qT_hat + " = qT_hat \n");
+                                        //}
+
                                         decimal var_C = (decimal)1.0 / qC_1;
                                         decimal var_T = (decimal)1.0 / qT_1;
                                         Var_snp_specific += (var_C + var_T);
@@ -244,18 +256,6 @@ namespace mg_gap
             //zraw UNSORTED is used for b so you have to do the ranked_z in another array
             //confirm through console the length is the same
             ranked_z.Sort();
-            if (ranked_z.Count == zraw.Count)
-            {
-                Console.WriteLine("Ranked Z and Z Raw verified equivalent length (" + ranked_z.Count + ")");
-                if (ranked_z[10].ToString() == zraw[10].ToString())
-                {
-                    Console.WriteLine("might be same");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Ranked Z and Z Raw not verified equivalent!");
-            }
 
             var n25 = ranked_z[num_snps / 4];
             var n50 = ranked_z[num_snps / 2];
@@ -277,7 +277,7 @@ namespace mg_gap
             {
                 string unparsed_line = accepted_snps[k].ToString();
                 string[] parsedarray = unparsed_line.Split('\t').ToArray();
-                var vdiv = (decimal)Var_neutral + Convert.ToDecimal(parsedarray[1]) + Convert.ToDecimal(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
+                decimal vdiv = (decimal)Var_neutral + Convert.ToDecimal(parsedarray[1]) + Convert.ToDecimal(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
                 decimal b = (decimal)Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
                 bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n');
                 if (b == 0)
@@ -314,13 +314,13 @@ namespace mg_gap
 
             //Console.WriteLine("Writing qCqT_Lines.txt file...");
             //for diagnostics make a qcqtlines file
-            //using (StreamWriter qcqtwriter = File.CreateText("qCqT_Lines.txt"))
-            //{
-            //    foreach (var line in qCqTLines)
-            //    {
-            //        qcqtwriter.WriteLine(line);
-            //    }
-            //}
+            using (StreamWriter qcqtwriter = File.CreateText("qCqT_same_hats.txt"))
+            {
+                foreach (var line in qcqthat_same)
+                {
+                    qcqtwriter.WriteLine(line);
+                }
+            }
 
             Console.WriteLine("Analysis complete...");
             //return divergeissues;
