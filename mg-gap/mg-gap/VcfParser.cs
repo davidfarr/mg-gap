@@ -37,6 +37,8 @@ namespace mg_gap
             //string diags
             string variances = string.Empty;
 
+            //b = 0 is artificial
+
 
             //evaluate contents of each line of input file
             using (var fileStream = File.OpenRead(vcfpath))
@@ -196,7 +198,7 @@ namespace mg_gap
                                         decimal qC_hat = qC_0 / qC_1;
                                         decimal qT_hat = qT_0 / qT_1;
 
-                                        //if (qC_hat == qT_hat) //this catches any time qC_hat and qT_hat are the same - which shouldn't really happen
+                                        //if (qC_hat == qT_hat) //this catches any time qC_hat and qT_hat are the same - which shouldn't really happen and so throw them out
                                         //{
                                         //    qcqthat_same.Add(cols[0] + "_" + cols[1] + " \nqC_0 / qC_1 = " + qC_0 + " / " + qC_1 + " = " + qC_hat + " = qC_hat" + "\n" +
                                         //        "qT_0 / qT_1 = " + qT_0 + " / " + qT_1 + " = " + qT_hat + " = qT_hat \n");
@@ -233,7 +235,7 @@ namespace mg_gap
                                         }
 
                                         //SNP accepted.
-                                        accepted_snps.Add(cols[0] + "_" + cols[1] + '\t' + var_C + '\t' + var_T);
+                                        accepted_snps.Add(cols[0] + "_" + cols[1] + '\t' + var_C + '\t' + var_T + '\t' + qC_hat + '\t' + qT_hat);
                                     }
                                     else
                                     {
@@ -279,7 +281,9 @@ namespace mg_gap
                 string[] parsedarray = unparsed_line.Split('\t').ToArray();
                 decimal vdiv = (decimal)Var_neutral + Convert.ToDecimal(parsedarray[1]) + Convert.ToDecimal(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
                 decimal b = (decimal)Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
-                bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n');
+                bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
+                //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
+
                 if (b == 0)
                 {
                     b0_counter++;
@@ -287,40 +291,30 @@ namespace mg_gap
             }
 
             //make diag file
-            Console.WriteLine("Building the diagnostic file...");
-            diagnostic_log.Add("-----------------------------------------");
-            diagnostic_log.Add("Task: B Processing at SNP window " + window);
-            diagnostic_log.Add("Num of actual SNP's: " + num_snp_lines);
-            diagnostic_log.Add("Processed SNP lines: " + num_snps);
-            diagnostic_log.Add("Skipped SNP's: " + skipcounter);
-            diagnostic_log.Add("Accepted SNP's: " + accepted_snps.Count);
-            diagnostic_log.Add("Num of divergence = 0: " + diverge_0);
-            diagnostic_log.Add("Num of B = 0: " + b0_counter);
-            diagnostic_log.Add(variances);
-            diagnostic_log.Add("Num of items in qCqTLines file: " + qCqTLines.Count);
-            diagnostic_log.Add("-----------------------------------------");
-            using (StreamWriter diagwriter = File.CreateText("diagnostics.txt"))
-            {
-                foreach (var line in diagnostic_log)
-                {
-                    diagwriter.WriteLine(line);
-                }
-            }
+            //Console.WriteLine("Building the diagnostic file...");
+            //diagnostic_log.Add("-----------------------------------------");
+            //diagnostic_log.Add("Task: B Processing at SNP window " + window);
+            //diagnostic_log.Add("Num of actual SNP's: " + num_snp_lines);
+            //diagnostic_log.Add("Processed SNP lines: " + num_snps);
+            //diagnostic_log.Add("Skipped SNP's: " + skipcounter);
+            //diagnostic_log.Add("Accepted SNP's: " + accepted_snps.Count);
+            //diagnostic_log.Add("Num of divergence = 0: " + diverge_0);
+            //diagnostic_log.Add("Num of B = 0: " + b0_counter);
+            //diagnostic_log.Add(variances);
+            //diagnostic_log.Add("Num of items in qCqTLines file: " + qCqTLines.Count);
+            //diagnostic_log.Add("-----------------------------------------");
+            //using (StreamWriter diagwriter = File.CreateText("diagnostics.txt"))
+            //{
+            //    foreach (var line in diagnostic_log)
+            //    {
+            //        diagwriter.WriteLine(line);
+            //    }
+            //}
 
 
             //Report # of b = 0 and diverge of 0
             Console.WriteLine("Number of 0 divergence: " + diverge_0);
             Console.WriteLine("Number of 0 B: " + b0_counter);
-
-            //Console.WriteLine("Writing qCqT_Lines.txt file...");
-            //for diagnostics make a qcqtlines file
-            using (StreamWriter qcqtwriter = File.CreateText("qCqT_same_hats.txt"))
-            {
-                foreach (var line in qcqthat_same)
-                {
-                    qcqtwriter.WriteLine(line);
-                }
-            }
 
             Console.WriteLine("Analysis complete...");
             //return divergeissues;
