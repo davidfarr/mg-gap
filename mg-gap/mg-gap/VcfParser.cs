@@ -10,32 +10,32 @@ namespace mg_gap
 {
     class VcfParser
     {
-        public static List<string> b_processing(int window, string vcfpath)
+        public static List<string> b_processing(int window, string vcfpath, char bs_go)
         {
+            string in1 = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
             List<string> bList = new List<string>(); //out2
             //these may be user defined
             int min_reads = 20;
             List<string> LineID = new List<string>(); //may not do anything useful
             List<string> Locations = new List<string>();
-            List<string> raw_results = new List<string>(); //out0
-            List<string> qCqTLines = new List<string>(); //for diagnostics
-            List<string> diagnostic_log = new List<string>(); //for diagnostics
+            //List<string> raw_results = new List<string>(); //out0
+            //List<string> qCqTLines = new List<string>(); //for diagnostics
+            //List<string> diagnostic_log = new List<string>(); //for diagnostics
             List<decimal> ranked_z = new List<decimal>();
-            List<string> qcqthat_same = new List<string>();
 
 
             //set up counters
-            int num_snps = 0;
+            int num_snps = 0; //this should be a total of all the *accepted* SNP's in the file
             decimal Var_snp_specific = (decimal)0.0;
             List<decimal> zraw = new List<decimal>();
             List<string> accepted_snps = new List<string>();
             int skipcounter = 0;
-            int b0_counter = 0;
+            //int b0_counter = 0;
             int diverge_0 = 0;
-            int num_snp_lines = 0;
+            int num_snp_lines = 0; //this should be a total of all the SNP's in the file
 
             //string diags
-            string variances = string.Empty;
+            //string variances = string.Empty;
 
             //b = 0 is artificial
 
@@ -192,50 +192,52 @@ namespace mg_gap
                                         //qCqTLines.Add("1 \t" + qT_1.ToString() + "\t" + qC_1.ToString() + "\t" + "[" + string.Join(", ", C_dat.ToArray()) + "]\t C_count array size: " + C_count.ToString() + " \t" + "[" + string.Join(", ", T_dat.ToArray()) + "]\t T_count array size: " + T_count.ToString());
 
                                         //skipping output for yut file
-                                        Locations.Add(cols[0] + "_" + cols[1]);
-                                        num_snps++;
+
                                         //qC_hat and qT_hat should be different almost all of the time
                                         decimal qC_hat = qC_0 / qC_1;
                                         decimal qT_hat = qT_0 / qT_1;
 
-                                        //if (qC_hat == qT_hat) //this catches any time qC_hat and qT_hat are the same - which shouldn't really happen and so throw them out
-                                        //{
-                                        //    qcqthat_same.Add(cols[0] + "_" + cols[1] + " \nqC_0 / qC_1 = " + qC_0 + " / " + qC_1 + " = " + qC_hat + " = qC_hat" + "\n" +
-                                        //        "qT_0 / qT_1 = " + qT_0 + " / " + qT_1 + " = " + qT_hat + " = qT_hat \n");
-                                        //    Console.WriteLine(cols[0] + "_" + cols[1] + " \nqC_0 / qC_1 = " + qC_0 + " / " + qC_1 + " = " + qC_hat + " = qC_hat" + "\n" +
-                                        //        "qT_0 / qT_1 = " + qT_0 + " / " + qT_1 + " = " + qT_hat + " = qT_hat \n");
-                                        //}
-
-                                        decimal var_C = (decimal)1.0 / qC_1;
-                                        decimal var_T = (decimal)1.0 / qT_1;
-                                        Var_snp_specific += (var_C + var_T);
-
-                                        //converted to float for more precision
-                                        decimal diverge = (decimal)(2.0 * ((Math.Asin(Math.Pow((double)qT_hat, 0.5))) - (Math.Asin(Math.Pow((double)qC_hat, 0.5)))));
-                                        //double diverge = 2.0 * (Math.Asin(Math.Pow(qT_hat, 0.5)) - (Math.Asin(Math.Pow(qC_hat, 0.5))));
-                                        if (diverge == 0)
+                                        if (qC_hat != qT_hat) //this catches any time qC_hat and qT_hat are the same - which shouldn't really happen and so throw them out
                                         {
-                                            //Console.WriteLine(" Diverge = " + diverge + " " + cols[0] + "_" + cols[1]);
-                                            diverge_0++;
-                                        }
+                                            //moved down one logic level to prevent num_snp's from being off in final calculations
+                                            Locations.Add(cols[0] + "_" + cols[1]);
+                                            num_snps++;
 
-                                        //raw_results.Add(cols[0] + '\t' + cols[1] + qC_1.ToString() + '\t' + qC_hat.ToString()
-                                        //    + '\t' + qT_1.ToString() + '\t' + qT_hat.ToString() + '\t' + diverge.ToString() + '\n');
+                                            decimal var_C = (decimal)1.0 / qC_1;
+                                            decimal var_T = (decimal)1.0 / qT_1;
+                                            Var_snp_specific += (var_C + var_T);
 
-                                        Random rnd = new Random();
-                                        if (rnd.Next(1, 3) == 1)
-                                        {
-                                            zraw.Add(diverge);
-                                            ranked_z.Add(diverge);
+                                            //note decimal provides more precision but some of the Math class methods only take double - so there may be some small loss of precision past n^-16 
+                                            decimal diverge = (decimal)(2.0 * ((Math.Asin(Math.Pow((double)qT_hat, 0.5))) - (Math.Asin(Math.Pow((double)qC_hat, 0.5)))));
+                                            if (diverge == 0)
+                                            {
+                                                Console.WriteLine(" Diverge = " + diverge + " " + cols[0] + "_" + cols[1]);
+                                                diverge_0++;
+                                            }
+
+                                            //raw_results.Add(cols[0] + '\t' + cols[1] + qC_1.ToString() + '\t' + qC_hat.ToString()
+                                            //    + '\t' + qT_1.ToString() + '\t' + qT_hat.ToString() + '\t' + diverge.ToString() + '\n');
+
+                                            Random rnd = new Random();
+                                            if (rnd.Next(1, 3) == 1)
+                                            {
+                                                zraw.Add(diverge);
+                                                ranked_z.Add(diverge);
+                                            }
+                                            else
+                                            {
+                                                zraw.Add(-diverge);
+                                                ranked_z.Add(-diverge);
+                                            }
+
+                                            //SNP accepted.
+                                            accepted_snps.Add(cols[0] + "_" + cols[1] + '\t' + var_C + '\t' + var_T + '\t' + Math.Asin(Math.Sqrt((double)qC_0)) + '\t' + Math.Asin(Math.Sqrt((double)qT_0)));
                                         }
                                         else
                                         {
-                                            zraw.Add(-diverge);
-                                            ranked_z.Add(-diverge);
+                                            skipcounter++; //there should be no situation where the variance is 0, this undermines the point of a VCF file
                                         }
-
-                                        //SNP accepted.
-                                        accepted_snps.Add(cols[0] + "_" + cols[1] + '\t' + var_C + '\t' + var_T + '\t' + qC_hat + '\t' + qT_hat);
+                                        
                                     }
                                     else
                                     {
@@ -252,6 +254,12 @@ namespace mg_gap
             Console.WriteLine("SNP processing complete, starting analysis...");
             Console.WriteLine("Skipped " + skipcounter + " SNPs");
             Console.WriteLine("Accepted " + accepted_snps.Count + " SNPs");
+
+            if (num_snps != accepted_snps.Count)
+            {
+                Console.WriteLine("number of accepted snp's varies from length of accepted list - respectively " + num_snps + " vs. " + accepted_snps.Count);
+            }
+
             Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDecimal(num_snps)));
 
             //make the z, rankings
@@ -268,12 +276,14 @@ namespace mg_gap
             double Var_neutral = (Math.Pow(((double)(Convert.ToDecimal(n75) - Convert.ToDecimal(n25)) / 1.349), 2)) - (double)Var_snp_specific / num_snps;
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
 
-            variances = "Z percentiles (without direction) " + n25 + " " + n50 + " " + n75 + "\n" +
+            /*variances = "Z percentiles (without direction) " + n25 + " " + n50 + " " + n75 + "\n" +
                 "Total variance in Z (based on IQR) " + Math.Pow((Convert.ToDouble(n75) - Convert.ToDouble(n25) / 1.349), 2) + "\n" +
-                "Bulk sampling and library variance " + Var_neutral;
+                "Bulk sampling and library variance " + Var_neutral;*/
 
 
             //build the b list
+            List<decimal> ranked_b = new List<decimal>();
+            List<decimal> bRaw = new List<decimal>();
             Console.WriteLine("Building the B list...");
             for (int k = 0; k < zraw.Count; k++)
             {
@@ -281,44 +291,118 @@ namespace mg_gap
                 string[] parsedarray = unparsed_line.Split('\t').ToArray();
                 decimal vdiv = (decimal)Var_neutral + Convert.ToDecimal(parsedarray[1]) + Convert.ToDecimal(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
                 decimal b = (decimal)Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
-                bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
-                //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
+                ranked_b.Add(b);
+                bRaw.Add(b);
+                //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
+                bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
 
                 if (b == 0)
                 {
-                    b0_counter++;
+                    Console.WriteLine("B=0");
                 }
             }
 
-            //make diag file
-            //Console.WriteLine("Building the diagnostic file...");
-            //diagnostic_log.Add("-----------------------------------------");
-            //diagnostic_log.Add("Task: B Processing at SNP window " + window);
-            //diagnostic_log.Add("Num of actual SNP's: " + num_snp_lines);
-            //diagnostic_log.Add("Processed SNP lines: " + num_snps);
-            //diagnostic_log.Add("Skipped SNP's: " + skipcounter);
-            //diagnostic_log.Add("Accepted SNP's: " + accepted_snps.Count);
-            //diagnostic_log.Add("Num of divergence = 0: " + diverge_0);
-            //diagnostic_log.Add("Num of B = 0: " + b0_counter);
-            //diagnostic_log.Add(variances);
-            //diagnostic_log.Add("Num of items in qCqTLines file: " + qCqTLines.Count);
-            //diagnostic_log.Add("-----------------------------------------");
-            //using (StreamWriter diagwriter = File.CreateText("diagnostics.txt"))
-            //{
-            //    foreach (var line in diagnostic_log)
-            //    {
-            //        diagwriter.WriteLine(line);
-            //    }
-            //}
+            //if this is the version of the run where we want to get B*...
+            if (bs_go == 'Y')
+            {
+                //make a sorted B list
+                ranked_b.Sort();
+                //Get percentiles array
+                //set things up from the chisq file
+                Console.WriteLine("Enumerating and working with chisq file.");
+                List<double> df = new List<double>();
+                List<decimal> bs = new List<decimal>();
+                ArrayList[] percentiles = new ArrayList[100];
+                for (int i = 0; i < percentiles.Length; i++)
+                {
+                    percentiles[i] = new ArrayList();
+                }
+                var line_idx = 0;
+                foreach (var line in File.ReadLines(in1))
+                {
+                    var cols = line.Replace(Environment.NewLine, "").Split(new[] { '\t' });
+                    df.Add(float.Parse(cols[0]));
+                    for (int j = 1; j < 9; j++)
+                    {
+                        percentiles[line_idx].Add(float.Parse(cols[j]));
+                    }
+                    var rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
+                              Convert.ToDouble(percentiles[line_idx][1])) /
+                        (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
+                    bs.Add((decimal)rx);
+                    line_idx++;
+                }
+                decimal b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
+                Console.WriteLine("B Bowley skew " + b_skew);
+                double m = -1.0;
+                int jstar = 0;
+                if (b_skew > bs[0])
+                {
+                    Console.WriteLine("Too much skew.");
+                }
+                else
+                {
+                    for (int j = 0; j < bs.Count; j++)
+                    {
+                        if (b_skew > bs[j])
+                        {
+                            m = df[j];
+                            jstar = j;
+                            break;
+                        }
+                    }
+                }
+                decimal cIQR = (decimal)percentiles[jstar][2] - (decimal)percentiles[jstar][0];
+                decimal sigB = (n75 - n25) * (decimal)Math.Pow((2 * m), 0.5) / cIQR;
 
+                List<string> bs_list = new List<string>();
+                double p = 0.0;
+                for (int j = 0;j < ranked_b.Count;j++)
+                {
+                    decimal bstar = (decimal)m + (bRaw[j] - window) * (decimal)Math.Pow((2 * m), 0.5) / sigB;
+                    if (bstar < (decimal)percentiles[jstar][3])//p > 0.05
+                    {
+                        p = 0.5;
+                    }
+                    else if (bstar > (decimal)percentiles[jstar][8]) //b less than table min
+                    {
+                        p = 5.0 * Math.Pow(10, (1.0 - 8.5));
+                    }
+                    else
+                    {
+                        for (int k = 4;k < 9; k++)
+                        {
+                            if (bstar > (decimal)percentiles[jstar][k-1] && bstar <= (decimal)percentiles[jstar][k])
+                            {
+                                decimal dx = (bstar - (decimal)percentiles[jstar][k - 1]) / ((decimal)percentiles[jstar][k] - (decimal)percentiles[jstar][k - 1]);
+                                decimal x = k - 1 + dx;
+                                p = 5.0 * Math.Pow(10, (1.0 - (double)x));
+                                break;
+                            }
+                        }
+                    }
+                }
+                //add to bs list to output
+                //bstar is the value to put in
+                foreach (string line in bList)
+                {
+                    string[] parsedline = line.Split('\t');
+                    if ()
+                }
 
-            //Report # of b = 0 and diverge of 0
-            Console.WriteLine("Number of 0 divergence: " + diverge_0);
-            Console.WriteLine("Number of 0 B: " + b0_counter);
+                return bs_list;
 
-            Console.WriteLine("Analysis complete...");
-            //return divergeissues;
-            return bList;
+            }
+            else if (bs_go == 'N')
+            {
+                //Report # of b = 0 and diverge of 0
+                Console.WriteLine("Number of 0 divergence: " + diverge_0); //this should always be 0
+                Console.WriteLine("Analysis complete...");
+                return bList;
+            }
+
+           
+            //return bList;
         }
     }
 }
