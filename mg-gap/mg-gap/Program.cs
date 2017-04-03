@@ -22,9 +22,9 @@ namespace v1_gap
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
-            Console.WriteLine("Starting B processing...");
+            Console.WriteLine("Starting B processing at " + DateTime.Now + "...");
             methodTime.Start();
-            List<string> bResult = mg_gap.VcfParser.b_processing(1, vcf_path, 'N'); //window of 1, path, do not get b*
+            List<string> bResult = mg_gap.VcfParser.b_processing(1, vcf_path, 'Y'); //window of 1, path, do not get b*
             methodTime.Stop();
             Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
             using (StreamWriter bfilenew = File.CreateText("B1_new.txt"))
@@ -108,7 +108,13 @@ namespace v1_gap
             if (median > 0)
             {
                 List<string> b_star_Result = mg_gap.VcfParser.b_processing((int)median, vcf_path, 'N'); //window of 1, path, do not get b*
-
+                using (StreamWriter bsfile = File.CreateText("B" + median + ".txt"))
+                {
+                    foreach (var line in b_star_Result)
+                    {
+                        bsfile.WriteLine(line);
+                    }
+                }
             }
 
             //force to wait before closing

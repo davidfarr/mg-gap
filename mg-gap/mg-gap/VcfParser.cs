@@ -12,7 +12,7 @@ namespace mg_gap
     {
         public static List<string> b_processing(int window, string vcfpath, char bs_go)
         {
-            string in1 = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
+            string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
             List<string> bList = new List<string>(); //out2
             //these may be user defined
             int min_reads = 20;
@@ -21,13 +21,13 @@ namespace mg_gap
             //List<string> raw_results = new List<string>(); //out0
             //List<string> qCqTLines = new List<string>(); //for diagnostics
             //List<string> diagnostic_log = new List<string>(); //for diagnostics
-            List<decimal> ranked_z = new List<decimal>();
+            List<double> ranked_z = new List<double>();
 
 
             //set up counters
             int num_snps = 0; //this should be a total of all the *accepted* SNP's in the file
-            decimal Var_snp_specific = (decimal)0.0;
-            List<decimal> zraw = new List<decimal>();
+            double Var_snp_specific = (double)0.0;
+            List<double> zraw = new List<double>();
             List<string> accepted_snps = new List<string>();
             int skipcounter = 0;
             //int b0_counter = 0;
@@ -104,12 +104,12 @@ namespace mg_gap
                             else
                             {
                                 //set up counters - these will be critical to analysis
-                                decimal C_count = 0;
+                                double C_count = 0;
                                 //ArrayList C_dat = new ArrayList();
-                                List<decimal> C_dat = new List<decimal> { };
-                                decimal T_count = 0;
+                                List<double> C_dat = new List<double> { };
+                                double T_count = 0;
                                 //ArrayList T_dat = new ArrayList();
-                                List<decimal> T_dat = new List<decimal> { };
+                                List<double> T_dat = new List<double> { };
 
                                 for (int j = 9; j < 9 + 5; j++) //line 76 in python
                                 {
@@ -166,21 +166,21 @@ namespace mg_gap
                                 if (C_count > 0 && T_count > 0) //this is the problem loop edited w/JK this whole thing should be iterated a number of times per snp
                                 {
 
-                                    decimal qC_0 = (decimal)0.0;
-                                    decimal qC_1 = (decimal)0.0;
-                                    decimal qT_0 = (decimal)0.0;
-                                    decimal qT_1 = (decimal)0.0;
+                                    double qC_0 = (double)0.0;
+                                    double qC_1 = (double)0.0;
+                                    double qT_0 = (double)0.0;
+                                    double qT_1 = (double)0.0;
 
                                     for (int i = 0; i < C_dat.Count / 2; i++)
                                     {
-                                        decimal m = C_dat[2 * i] + C_dat[2 * i + 1];
+                                        double m = C_dat[2 * i] + C_dat[2 * i + 1];
                                         qC_0 += C_dat[2 * i]; //ref base
                                         qC_1 += m; //ref + alt base
                                     }
 
                                     for (int i = 0; i < T_dat.Count / 2; i++)
                                     {
-                                        decimal m = T_dat[2 * i] + T_dat[2 * i + 1];
+                                        double m = T_dat[2 * i] + T_dat[2 * i + 1];
                                         qT_0 += T_dat[2 * i];
                                         qT_1 += m;
                                     }
@@ -194,8 +194,8 @@ namespace mg_gap
                                         //skipping output for yut file
 
                                         //qC_hat and qT_hat should be different almost all of the time
-                                        decimal qC_hat = qC_0 / qC_1;
-                                        decimal qT_hat = qT_0 / qT_1;
+                                        double qC_hat = qC_0 / qC_1;
+                                        double qT_hat = qT_0 / qT_1;
 
                                         if (qC_hat != qT_hat) //this catches any time qC_hat and qT_hat are the same - which shouldn't really happen and so throw them out
                                         {
@@ -203,12 +203,12 @@ namespace mg_gap
                                             Locations.Add(cols[0] + "_" + cols[1]);
                                             num_snps++;
 
-                                            decimal var_C = (decimal)1.0 / qC_1;
-                                            decimal var_T = (decimal)1.0 / qT_1;
+                                            double var_C = (double)1.0 / qC_1;
+                                            double var_T = (double)1.0 / qT_1;
                                             Var_snp_specific += (var_C + var_T);
 
-                                            //note decimal provides more precision but some of the Math class methods only take double - so there may be some small loss of precision past n^-16 
-                                            decimal diverge = (decimal)(2.0 * ((Math.Asin(Math.Pow((double)qT_hat, 0.5))) - (Math.Asin(Math.Pow((double)qC_hat, 0.5)))));
+                                            //note double provides more precision but some of the Math class methods only take double - so there may be some small loss of precision past n^-16 
+                                            double diverge = (double)(2.0 * ((Math.Asin(Math.Pow((double)qT_hat, 0.5))) - (Math.Asin(Math.Pow((double)qC_hat, 0.5)))));
                                             if (diverge == 0)
                                             {
                                                 Console.WriteLine(" Diverge = " + diverge + " " + cols[0] + "_" + cols[1]);
@@ -260,7 +260,7 @@ namespace mg_gap
                 Console.WriteLine("number of accepted snp's varies from length of accepted list - respectively " + num_snps + " vs. " + accepted_snps.Count);
             }
 
-            Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDecimal(num_snps)));
+            Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDouble(num_snps)));
 
             //make the z, rankings
             //zraw UNSORTED is used for b so you have to do the ranked_z in another array
@@ -271,138 +271,150 @@ namespace mg_gap
             var n50 = ranked_z[num_snps / 2];
             var n75 = ranked_z[3 * num_snps / 4];
             Console.WriteLine("Z percentiles (without direction) " + n25 + " " + n50 + " " + n75);
-            Console.WriteLine("Total variance in Z (based on IQR) " + Math.Pow((double)(Convert.ToDecimal(n75) - Convert.ToDecimal(n25) / (decimal)1.349), 2));
+            Console.WriteLine("Total variance in Z (based on IQR) " + Math.Pow((n75 - n25 / 1.349), 2));
 
-            double Var_neutral = (Math.Pow(((double)(Convert.ToDecimal(n75) - Convert.ToDecimal(n25)) / 1.349), 2)) - (double)Var_snp_specific / num_snps;
+            double Var_neutral = (Math.Pow(((n75 - n25) / 1.349), 2)) - Var_snp_specific / num_snps;
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
 
-            /*variances = "Z percentiles (without direction) " + n25 + " " + n50 + " " + n75 + "\n" +
-                "Total variance in Z (based on IQR) " + Math.Pow((Convert.ToDouble(n75) - Convert.ToDouble(n25) / 1.349), 2) + "\n" +
-                "Bulk sampling and library variance " + Var_neutral;*/
-
-
-            //build the b list
-            List<decimal> ranked_b = new List<decimal>();
-            List<decimal> bRaw = new List<decimal>();
-            Console.WriteLine("Building the B list...");
+            //make an unsorted B list - the output of this is the last step if just doing B
+            List<double> b_std = new List<double>();
             for (int k = 0; k < zraw.Count; k++)
             {
                 string unparsed_line = accepted_snps[k].ToString();
                 string[] parsedarray = unparsed_line.Split('\t').ToArray();
-                decimal vdiv = (decimal)Var_neutral + Convert.ToDecimal(parsedarray[1]) + Convert.ToDecimal(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
-                decimal b = (decimal)Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
-                ranked_b.Add(b);
-                bRaw.Add(b);
+                double vdiv = Var_neutral + Convert.ToDouble(parsedarray[1]) + Convert.ToDouble(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
+                double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
+                b_std.Add(b);
                 //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
                 bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
+            }
 
-                if (b == 0)
+            //set things up from the chisq file
+            Console.WriteLine("Enumerating and working with chisq file.");
+            List<double> df = new List<double>();
+            List<double> bs = new List<double>();
+            ArrayList[] percentiles = new ArrayList[100];
+            for (int i = 0; i < percentiles.Length; i++)
+            {
+                percentiles[i] = new ArrayList();
+            }
+            var line_idx = 0;
+            foreach (string line in File.ReadLines(in1))
+            {
+                string[] cols = line.Replace(Environment.NewLine, "").Split(new[] { '\t' });
+                df.Add(float.Parse(cols[0]));
+                for (int j = 1; j < 9; j++)
                 {
-                    Console.WriteLine("B=0");
+                    percentiles[line_idx].Add(float.Parse(cols[j+1]));
+                }
+                double rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
+                          Convert.ToDouble(percentiles[line_idx][1])) /
+                    (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
+                bs.Add(rx);
+                line_idx++;
+            }
+            //#####
+
+            List<double> braw = new List<double>();
+            List<string> bloc = new List<string>();
+            List<double> b_sorted = new List<double>();
+            for (int k = 0; k < num_snps; k++)
+            {
+                if (k % window == 0 || k % window == window / 2) //is end of window?
+                {
+                    double b = (double)0.0;
+                    for (int j = 0; j < window; j++)
+                    {
+                        b += ((double)Math.Pow((double)b_std[k - j], 2));
+                    }
+                    bloc.Add(Locations[k]);
+                    braw.Add(b);
+                    b_sorted.Add(b);
                 }
             }
 
-            //if this is the version of the run where we want to get B*...
-            if (bs_go == 'Y')
+            b_sorted.Sort();
+            double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
+            Console.WriteLine("B Bowley skew " + b_skew);
+            double m2 = -1.0;
+            int jstar = 0;
+            if (b_skew > bs[0])
             {
-                //make a sorted B list
-                ranked_b.Sort();
-                //Get percentiles array
-                //set things up from the chisq file
-                Console.WriteLine("Enumerating and working with chisq file.");
-                List<double> df = new List<double>();
-                List<decimal> bs = new List<decimal>();
-                ArrayList[] percentiles = new ArrayList[100];
-                for (int i = 0; i < percentiles.Length; i++)
+                Console.WriteLine("Too much skew.");
+            }
+            else
+            {
+                for (int j = 1; j < bs.Count; j++)
                 {
-                    percentiles[i] = new ArrayList();
-                }
-                var line_idx = 0;
-                foreach (var line in File.ReadLines(in1))
-                {
-                    var cols = line.Replace(Environment.NewLine, "").Split(new[] { '\t' });
-                    df.Add(float.Parse(cols[0]));
-                    for (int j = 1; j < 9; j++)
+                    if (b_skew > bs[j])
                     {
-                        percentiles[line_idx].Add(float.Parse(cols[j]));
+                        m2 = df[j];
+                        jstar = j;
+                        break;
                     }
-                    var rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
-                              Convert.ToDouble(percentiles[line_idx][1])) /
-                        (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
-                    bs.Add((decimal)rx);
-                    line_idx++;
                 }
-                decimal b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
-                Console.WriteLine("B Bowley skew " + b_skew);
-                double m = -1.0;
-                int jstar = 0;
-                if (b_skew > bs[0])
+            }
+            double cIQR_1 = Convert.ToDouble(percentiles[jstar][2]);
+            double cIQR_2 = Convert.ToDouble(percentiles[jstar][0]);
+            double cIQR = cIQR_1 - cIQR_2;
+            double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
+
+            List<string> bs_list = new List<string>();
+            double p = 0.0;
+            for (int j = 0; j < b_sorted.Count; j++)
+            {
+                double bstar = m2 + (braw[j] - window) * Math.Pow((2 * m2), 0.5) / sigB;
+                
+                if (bstar < Convert.ToDouble(percentiles[jstar][3]))//p > 0.05
                 {
-                    Console.WriteLine("Too much skew.");
+                    p = 0.5;
+                }
+                else if (bstar > Convert.ToDouble(percentiles[jstar][8])) //b less than table min
+                {
+                    p = 5.0 * Math.Pow(10, (1.0 - 8.5));
                 }
                 else
                 {
-                    for (int j = 0; j < bs.Count; j++)
+                    for (int k = 4; k < 9; k++)
                     {
-                        if (b_skew > bs[j])
+                        if (bstar > Convert.ToDouble(percentiles[jstar][k - 1]) && bstar <= Convert.ToDouble(percentiles[jstar][k]))
                         {
-                            m = df[j];
-                            jstar = j;
+                            double dx = (bstar - Convert.ToDouble(percentiles[jstar][k - 1])) / (Convert.ToDouble(percentiles[jstar][k]) - Convert.ToDouble(percentiles[jstar][k - 1]));
+                            double x = k - 1 + dx;
+                            p = 5.0 * Math.Pow(10, (1.0 - x));
                             break;
                         }
                     }
                 }
-                decimal cIQR = (decimal)percentiles[jstar][2] - (decimal)percentiles[jstar][0];
-                decimal sigB = (n75 - n25) * (decimal)Math.Pow((2 * m), 0.5) / cIQR;
-
-                List<string> bs_list = new List<string>();
-                double p = 0.0;
-                for (int j = 0;j < ranked_b.Count;j++)
+                string midpoint = string.Empty;
+                if (j > 0)
                 {
-                    decimal bstar = (decimal)m + (bRaw[j] - window) * (decimal)Math.Pow((2 * m), 0.5) / sigB;
-                    if (bstar < (decimal)percentiles[jstar][3])//p > 0.05
-                    {
-                        p = 0.5;
-                    }
-                    else if (bstar > (decimal)percentiles[jstar][8]) //b less than table min
-                    {
-                        p = 5.0 * Math.Pow(10, (1.0 - 8.5));
-                    }
-                    else
-                    {
-                        for (int k = 4;k < 9; k++)
-                        {
-                            if (bstar > (decimal)percentiles[jstar][k-1] && bstar <= (decimal)percentiles[jstar][k])
-                            {
-                                decimal dx = (bstar - (decimal)percentiles[jstar][k - 1]) / ((decimal)percentiles[jstar][k] - (decimal)percentiles[jstar][k - 1]);
-                                decimal x = k - 1 + dx;
-                                p = 5.0 * Math.Pow(10, (1.0 - (double)x));
-                                break;
-                            }
-                        }
-                    }
+                    midpoint = bloc[j - 1].ToString();
                 }
-                //add to bs list to output
-                //bstar is the value to put in
-                foreach (string line in bList)
+                else
                 {
-                    string[] parsedline = line.Split('\t');
-                    if ()
+                    midpoint = bloc[j].ToString();
+                    bs_list.Add(midpoint + '\t' + braw[j] + '\t' + bstar.ToString() + '\t' + p.ToString() + '\t');
                 }
-
-                return bs_list;
-
             }
-            else if (bs_go == 'N')
+
+            //build the b list
+            Console.WriteLine("Building the B list...");
+
+
+            //Report # of b = 0 and diverge of 0
+            Console.WriteLine("Number of 0 divergence: " + diverge_0); //this should always be 0
+            Console.WriteLine("Analysis complete...");
+
+            //if this is the version of the run where we want to get B*...
+            if (bs_go == 'Y')
             {
-                //Report # of b = 0 and diverge of 0
-                Console.WriteLine("Number of 0 divergence: " + diverge_0); //this should always be 0
-                Console.WriteLine("Analysis complete...");
-                return bList;
+                return bs_list;
             }
-
-           
-            //return bList;
+            else
+            {
+                return bList;
+            }   
         }
     }
 }
