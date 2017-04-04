@@ -13,6 +13,7 @@ namespace mg_gap
         public static List<string> b_processing(int window, string vcfpath, char bs_go)
         {
             string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
+			//in1 = "/Users/david/Desktop/chisq.txt"; //for mac environment only
             List<string> bList = new List<string>(); //out2
             //these may be user defined
             int min_reads = 20;
@@ -22,6 +23,7 @@ namespace mg_gap
             //List<string> qCqTLines = new List<string>(); //for diagnostics
             //List<string> diagnostic_log = new List<string>(); //for diagnostics
             List<double> ranked_z = new List<double>();
+			List<string> bs_list = new List<string>(); //this is the output list for b* and goes to the b*(median).txt
 
 
             //set up counters
@@ -289,122 +291,129 @@ namespace mg_gap
                 bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
             }
 
-            //set things up from the chisq file
-            Console.WriteLine("Enumerating and working with chisq file.");
-            List<double> df = new List<double>();
-            List<double> bs = new List<double>();
-            ArrayList[] percentiles = new ArrayList[100];
-            for (int i = 0; i < percentiles.Length; i++)
-            {
-                percentiles[i] = new ArrayList();
-            }
-            var line_idx = 0;
-            foreach (string line in File.ReadLines(in1))
-            {
-                string[] cols = line.Replace(Environment.NewLine, "").Split(new[] { '\t' });
-                df.Add(float.Parse(cols[0]));
-                for (int j = 1; j < 9; j++)
-                {
-                    percentiles[line_idx].Add(float.Parse(cols[j+1]));
-                }
-                double rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
-                          Convert.ToDouble(percentiles[line_idx][1])) /
-                    (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
-                bs.Add(rx);
-                line_idx++;
-            }
             //#####
+			//all below goes to b*
+			if (bs_go == 'Y')
+			{
+				//set things up from the chisq file
+				Console.WriteLine("Assembling chi square apparatus...");
+				List<double> df = new List<double>();
+				List<double> bs = new List<double>();
+				ArrayList[] percentiles = new ArrayList[100];
+				for (int i = 0; i < percentiles.Length; i++)
+				{
+					percentiles[i] = new ArrayList();
+				}
+				int line_idx = 0;
+				foreach (string line in File.ReadLines(in1))
+				{
+					string[] cols = line.Replace("\n", "").Split('\t');
+					df.Add(float.Parse(cols[0]));
+					for (int j = 0; j < 9; j++)
+					{
+						percentiles[line_idx].Add(float.Parse(cols[j + 1]));
+					}
+					double rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
+							  Convert.ToDouble(percentiles[line_idx][1])) /
+						(Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
+					bs.Add(rx);
+					line_idx++;
+					//Console.WriteLine("chisq enumeration: added DF " + cols[0] + " and RX " + rx); //adds DF from 0.1 to 10 with different RX per df
+				}
+				List<double> braw = new List<double>();
+				List<string> bloc = new List<string>();
+				List<double> b_sorted = new List<double>();
+				for (int k = window; k < num_snps; k++)
+				{
+					if (k % window == 0 || k % window == window / 2) //is end of window?
+					{
+						double b = 0.0;
+						for (int j = 0; j < window; j++)
+						{
+							b += Math.Pow(b_std[k - j], 2);
+						}
+						bloc.Add(Locations[k]);
+						braw.Add(b);
+						b_sorted.Add(b);
+					}
+				}
 
-            List<double> braw = new List<double>();
-            List<string> bloc = new List<string>();
-            List<double> b_sorted = new List<double>();
-            for (int k = 0; k < num_snps; k++)
-            {
-                if (k % window == 0 || k % window == window / 2) //is end of window?
-                {
-                    double b = (double)0.0;
-                    for (int j = 0; j < window; j++)
-                    {
-                        b += ((double)Math.Pow((double)b_std[k - j], 2));
-                    }
-                    bloc.Add(Locations[k]);
-                    braw.Add(b);
-                    b_sorted.Add(b);
-                }
-            }
+				b_sorted.Sort();
 
-            b_sorted.Sort();
-            double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
-            Console.WriteLine("B Bowley skew " + b_skew);
-            double m2 = -1.0;
-            int jstar = 0;
-            if (b_skew > bs[0])
-            {
-                Console.WriteLine("Too much skew.");
-            }
-            else
-            {
-                for (int j = 1; j < bs.Count; j++)
-                {
-                    if (b_skew > bs[j])
-                    {
-                        m2 = df[j];
-                        jstar = j;
-                        break;
-                    }
-                }
-            }
-            double cIQR_1 = Convert.ToDouble(percentiles[jstar][2]);
-            double cIQR_2 = Convert.ToDouble(percentiles[jstar][0]);
-            double cIQR = cIQR_1 - cIQR_2;
-            double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
+				//redo percentiles?
+				n25 = b_sorted[braw.Count / 4];
+				n50 = b_sorted[braw.Count / 2];
+				n75 = b_sorted[3 * braw.Count / 4];
 
-            List<string> bs_list = new List<string>();
-            double p = 0.0;
-            for (int j = 0; j < b_sorted.Count; j++)
-            {
-                double bstar = m2 + (braw[j] - window) * Math.Pow((2 * m2), 0.5) / sigB;
-                
-                if (bstar < Convert.ToDouble(percentiles[jstar][3]))//p > 0.05
-                {
-                    p = 0.5;
-                }
-                else if (bstar > Convert.ToDouble(percentiles[jstar][8])) //b less than table min
-                {
-                    p = 5.0 * Math.Pow(10, (1.0 - 8.5));
-                }
-                else
-                {
-                    for (int k = 4; k < 9; k++)
-                    {
-                        if (bstar > Convert.ToDouble(percentiles[jstar][k - 1]) && bstar <= Convert.ToDouble(percentiles[jstar][k]))
-                        {
-                            double dx = (bstar - Convert.ToDouble(percentiles[jstar][k - 1])) / (Convert.ToDouble(percentiles[jstar][k]) - Convert.ToDouble(percentiles[jstar][k - 1]));
-                            double x = k - 1 + dx;
-                            p = 5.0 * Math.Pow(10, (1.0 - x));
-                            break;
-                        }
-                    }
-                }
-                string midpoint = string.Empty;
-                if (j > 0)
-                {
-                    midpoint = bloc[j - 1].ToString();
-                }
-                else
-                {
-                    midpoint = bloc[j].ToString();
-                    bs_list.Add(midpoint + '\t' + braw[j] + '\t' + bstar.ToString() + '\t' + p.ToString() + '\t');
-                }
-            }
+				double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
+				Console.WriteLine("B Bowley skew " + b_skew);
+				double m2 = -1.0;
+				int jstar = 0;
+				if (b_skew > bs[0])
+				{
+					Console.WriteLine("Too much skew.");
+				}
+				else
+				{
+					for (int j = 1; j < bs.Count; j++)
+					{
+						if (b_skew > bs[j])
+						{
+							m2 = df[j];
+							jstar = j;
+							break;
+						}
+					}
+				}
+				double cIQR_1 = Convert.ToDouble(percentiles[jstar][2]);
+				double cIQR_2 = Convert.ToDouble(percentiles[jstar][0]);
+				double cIQR = cIQR_1 - cIQR_2;
+				double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
+
+				double p = 0.0;
+				for (int j = 0; j < b_sorted.Count; j++)
+				{
+					double bx = braw[j];
+					double b_star = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
+					if (b_star < Convert.ToDouble(percentiles[jstar][3]))
+					{
+						p = 0.5;
+					}
+					else if (b_star > Convert.ToDouble(percentiles[jstar][8]))
+					{
+						p = 5.0 * Math.Pow(10, (1.0 - 8.5)); //p < table minimum
+					}
+					else
+					{
+						for (int k = 4; k < 9; k++)
+						{
+							if (b_star > Convert.ToDouble(percentiles[jstar][k - 1]) && b_star <= Convert.ToDouble(percentiles[jstar][k]))
+							{
+								double dx = (b_star - Convert.ToDouble(percentiles[jstar][k - 1])) / (Convert.ToDouble(percentiles[jstar][k]) - Convert.ToDouble(percentiles[jstar][k - 1]));
+								double x = k - 1 + dx;
+								p = 5.0 * Math.Pow(10, (1.0 - x));
+								break;
+							}
+						}
+					}
+					string midpoint = string.Empty;
+					if (j > 0)
+					{
+						midpoint = bloc[j - 1].ToString();
+					}
+					else
+					{
+						midpoint = bloc[j].ToString();
+					}
+					bs_list.Add(midpoint + '\t' + bx.ToString() + '\t' + b_star.ToString() + '\t' + p.ToString());
+				}
+			}
+
+            
 
             //build the b list
             Console.WriteLine("Building the B list...");
-
-
-            //Report # of b = 0 and diverge of 0
-            Console.WriteLine("Number of 0 divergence: " + diverge_0); //this should always be 0
-            Console.WriteLine("Analysis complete...");
+			Console.WriteLine("Analysis complete...");
 
             //if this is the version of the run where we want to get B*...
             if (bs_go == 'Y')

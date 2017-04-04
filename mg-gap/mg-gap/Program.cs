@@ -17,14 +17,14 @@ namespace v1_gap
         public static void Main(string[] args)
         {
             //set up the filepath - in this version it's hard-coded
-            //string vcf_path = "/Users/david/Desktop/Ali.vcf";
+            //string vcf_path = "/Users/david/Desktop/Ali.vcf"; //for mac environment only
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/ali.vcf";
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
             Console.WriteLine("Starting B processing at " + DateTime.Now + "...");
             methodTime.Start();
-            List<string> bResult = mg_gap.VcfParser.b_processing(1, vcf_path, 'Y'); //window of 1, path, do not get b*
+            List<string> bResult = mg_gap.VcfParser.b_processing(1, vcf_path, 'N'); //window of 1, path, do not get b*
             methodTime.Stop();
             Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
             using (StreamWriter bfilenew = File.CreateText("B1_new.txt"))
@@ -108,7 +108,7 @@ namespace v1_gap
             if (median > 0)
             {
                 List<string> b_star_Result = mg_gap.VcfParser.b_processing((int)median, vcf_path, 'N'); //window of 1, path, do not get b*
-                using (StreamWriter bsfile = File.CreateText("B" + median + ".txt"))
+                using (StreamWriter bsfile = File.CreateText("B*" + median + ".txt"))
                 {
                     foreach (var line in b_star_Result)
                     {
