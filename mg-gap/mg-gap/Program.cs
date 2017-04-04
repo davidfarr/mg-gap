@@ -112,7 +112,7 @@ namespace v1_gap
             if (median > 0)
             {
                 Console.WriteLine("Re-analyzing for B* based on median window size " + median + " @ " + DateTime.Now);
-                List<string> b_star_Result = mg_gap.VcfParser.b_processing((int)median, vcf_path, 'N'); //window of 1, path, do not get b*
+                List<string> b_star_Result = mg_gap.VcfParser.b_processing((int)median, vcf_path, 'Y'); //window is median, do get b*
                 Console.WriteLine("Analysis complete at " + DateTime.Now + ", writing B* results file...");
                 using (StreamWriter bsfile = File.CreateText("Bs_" + median + ".txt"))
                 {
