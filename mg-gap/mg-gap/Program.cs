@@ -55,9 +55,9 @@ namespace v1_gap
 
             //after this then find the median out of the output file and then run the b processing at that window and then b* processing - then move to java program
             //check if we recognize that the file has now been put there
-            string splinepath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
+            string splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
             double median = 0.0;
-            if (File.Exists(@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt") == true)
+            if (File.Exists(splinepath) == true)
             {
                 Console.WriteLine("GenWin file found, obtaining median window value...");
                 try
@@ -77,8 +77,12 @@ namespace v1_gap
                              * 4 = Mean Y
                              * 5 = W statistic
                              * */ 
-                            string[] cols = line.Replace("\n", "").Split('\t');
-                            windows.Add(Convert.ToInt16(cols[3]));
+                             //first row is headers, skip
+                             if (!line.Contains("CHRcol"))
+                            {
+                                string[] cols = line.Replace("\n", "").Split('\t');
+                                windows.Add(Convert.ToInt16(cols[3]));
+                            }
                         }
                     }
                     //windows obtained successfully, now get the median
@@ -107,8 +111,10 @@ namespace v1_gap
             //now feed the median value back through b processing, then b*
             if (median > 0)
             {
+                Console.WriteLine("Re-analyzing for B* based on median window size " + median + " @ " + DateTime.Now);
                 List<string> b_star_Result = mg_gap.VcfParser.b_processing((int)median, vcf_path, 'N'); //window of 1, path, do not get b*
-                using (StreamWriter bsfile = File.CreateText("B*" + median + ".txt"))
+                Console.WriteLine("Analysis complete at " + DateTime.Now + ", writing B* results file...");
+                using (StreamWriter bsfile = File.CreateText("Bs_" + median + ".txt"))
                 {
                     foreach (var line in b_star_Result)
                     {

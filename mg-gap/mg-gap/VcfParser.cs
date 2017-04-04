@@ -10,7 +10,7 @@ namespace mg_gap
 {
     class VcfParser
     {
-        public static List<string> b_processing(int window, string vcfpath, char bs_go)
+        public static List<string> b_processing(int window, string vcfpath, char bs_go) //this is set up for SC vs T
         {
             string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
 			//in1 = "/Users/david/Desktop/chisq.txt"; //for mac environment only
@@ -168,10 +168,10 @@ namespace mg_gap
                                 if (C_count > 0 && T_count > 0) //this is the problem loop edited w/JK this whole thing should be iterated a number of times per snp
                                 {
 
-                                    double qC_0 = (double)0.0;
-                                    double qC_1 = (double)0.0;
-                                    double qT_0 = (double)0.0;
-                                    double qT_1 = (double)0.0;
+                                    double qC_0 = 0.0;
+                                    double qC_1 = 0.0;
+                                    double qT_0 = 0.0;
+                                    double qT_1 = 0.0;
 
                                     for (int i = 0; i < C_dat.Count / 2; i++)
                                     {
@@ -205,12 +205,12 @@ namespace mg_gap
                                             Locations.Add(cols[0] + "_" + cols[1]);
                                             num_snps++;
 
-                                            double var_C = (double)1.0 / qC_1;
-                                            double var_T = (double)1.0 / qT_1;
+                                            double var_C = 1.0 / qC_1;
+                                            double var_T = 1.0 / qT_1;
                                             Var_snp_specific += (var_C + var_T);
 
                                             //note double provides more precision but some of the Math class methods only take double - so there may be some small loss of precision past n^-16 
-                                            double diverge = (double)(2.0 * ((Math.Asin(Math.Pow((double)qT_hat, 0.5))) - (Math.Asin(Math.Pow((double)qC_hat, 0.5)))));
+                                            double diverge = (2.0 * ((Math.Asin(Math.Pow(qT_hat, 0.5))) - (Math.Asin(Math.Pow(qC_hat, 0.5)))));
                                             if (diverge == 0)
                                             {
                                                 Console.WriteLine(" Diverge = " + diverge + " " + cols[0] + "_" + cols[1]);
@@ -232,8 +232,10 @@ namespace mg_gap
                                                 ranked_z.Add(-diverge);
                                             }
 
+                                            double t_C_pop = Math.Asin(Math.Sqrt(qC_hat));
+                                            double t_T_pop = Math.Asin(Math.Sqrt(qT_hat));
                                             //SNP accepted.
-                                            accepted_snps.Add(cols[0] + "_" + cols[1] + '\t' + var_C + '\t' + var_T + '\t' + Math.Asin(Math.Sqrt((double)qC_0)) + '\t' + Math.Asin(Math.Sqrt((double)qT_0)));
+                                            accepted_snps.Add(cols[0] + "_" + cols[1] + '\t' + var_C + '\t' + var_T + '\t' + t_C_pop.ToString() + '\t' + t_T_pop.ToString());
                                         }
                                         else
                                         {
@@ -287,8 +289,8 @@ namespace mg_gap
                 double vdiv = Var_neutral + Convert.ToDouble(parsedarray[1]) + Convert.ToDouble(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
                 double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
                 b_std.Add(b);
-                //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
-                bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
+                bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
+                //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
             }
 
             //#####
