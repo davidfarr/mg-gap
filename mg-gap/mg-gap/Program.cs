@@ -123,6 +123,14 @@ namespace v1_gap
                 }
             }
 
+            //the FDR calculations are safest done in the program - execute
+            //string filepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/bin/Debug/Bs_" + median + ".txt";
+            //if (File.Exists(filepath))
+            //{
+            //    Console.WriteLine("Bs file path valid - initiating FDR analysis...");
+            //    mg_gap.FDR.assessment(filepath);
+            //}
+
             //force to wait before closing
             Console.WriteLine("Program complete, press any key to exit.");
             Console.ReadKey();
