@@ -23,3 +23,16 @@ N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-g
 /Users/david/Documents/visual studio projects/mg-gap/mg-gap/mg-gap/obj/Debug/mg-gap.csproj.CoreCompileInputs.cache
 /Users/david/Documents/visual studio projects/mg-gap/mg-gap/mg-gap/obj/Debug/mg-gap.exe
 /Users/david/Documents/visual studio projects/mg-gap/mg-gap/mg-gap/obj/Debug/mg-gap.pdb
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\mg-gap.exe.config
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\mg-gap.exe
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\mg-gap.pdb
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\DynamicInterop.dll
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\RDotNet.dll
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\RDotNet.NativeLibrary.dll
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\DynamicInterop.xml
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\RDotNet.xml
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\bin\Debug\RDotNet.NativeLibrary.xml
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.csprojResolveAssemblyReference.cache
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.csproj.CoreCompileInputs.cache
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.exe
+C:\Users\David\Documents\GitHub\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.pdb
