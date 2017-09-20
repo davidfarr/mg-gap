@@ -5,42 +5,32 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-
 namespace mg_gap
 {
-    class VcfParser
+    class VCF_Analyzer
     {
-        public static List<string> b_processing(int window, string vcfpath, char bs_go) //this is set up for SC vs T
+        //read the VCF... create a list of SNP's with their info in a method and return the "list" of SNPs back to the main program file
+
+        public static List<SNP> snp_list(int window, string vcfpath, char bs_go)
         {
+            //create the empty list
+            List<SNP> snp_list_raw = new List<SNP>(); //stores all SNPs and all their info in the analysis
+
             string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
-			//in1 = "/Users/david/Desktop/chisq.txt"; //for mac environment only
-            List<string> bList = new List<string>(); //out2
+            in1 = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
             //these may be user defined
             int min_reads = 20;
             List<string> LineID = new List<string>(); //may not do anything useful
             List<string> Locations = new List<string>();
-            //List<string> raw_results = new List<string>(); //out0
-            //List<string> qCqTLines = new List<string>(); //for diagnostics
-            //List<string> diagnostic_log = new List<string>(); //for diagnostics
             List<double> ranked_z = new List<double>();
-			List<string> bs_list = new List<string>(); //this is the output list for b* and goes to the b*(median).txt
-
 
             //set up counters
             int num_snps = 0; //this should be a total of all the *accepted* SNP's in the file
             double Var_snp_specific = (double)0.0;
             List<double> zraw = new List<double>();
-            List<string> accepted_snps = new List<string>();
             int skipcounter = 0;
-            //int b0_counter = 0;
             int diverge_0 = 0;
             int num_snp_lines = 0; //this should be a total of all the SNP's in the file
-
-            //string diags
-            //string variances = string.Empty;
-
-            //b = 0 is artificial
-
 
             //evaluate contents of each line of input file
             using (var fileStream = File.OpenRead(vcfpath))
@@ -62,10 +52,6 @@ namespace mg_gap
                         {
                             int index = Array.IndexOf(cols, entity);
                             Console.WriteLine("Found " + entity);
-                            if (index > 8)
-                            {
-                                LineID.Add(cols[index]); //doesn't really do anything
-                            }
                         }
                     }
                     else if (!cols[0].Contains("##")) //gets rid of contigs
@@ -97,7 +83,6 @@ namespace mg_gap
                             int position = Convert.ToInt32(cols[1]);
                             string ref_base = cols[3];
                             string alt_base = cols[4];
-                            //Console.WriteLine("Ref " + ref_base + " Alt " + alt_base);
                             //check if multiple bases
                             if (alt_base.Length > 1)
                             {
@@ -165,9 +150,7 @@ namespace mg_gap
                                 C_dat array as follows: [ 5,0,8,1 ]
                                 T_dat array as follows: [ 2,2,4,1 ]
                                 */
-                                //Console.WriteLine("C_dat: [ " + string.Join(",", C_dat.ToArray()) + " ] count " + C_dat.Count() + "\nT_dat: [ " + string.Join(",", T_dat.ToArray()) + " ] count " + T_dat.Count() + "\n");
 
-                                //if (C_count >= 0 && T_count >= 0) //this is the problem loop
                                 if (C_count > 0 && T_count > 0) //this is the problem loop edited w/JK this whole thing should be iterated a number of times per snp
                                 {
 
@@ -193,11 +176,6 @@ namespace mg_gap
 
                                     if (qT_1 >= min_reads && qC_1 >= min_reads)
                                     {
-                                        //make a qcqtlines thingy for tracking
-                                        //qCqTLines.Add("1 \t" + qT_1.ToString() + "\t" + qC_1.ToString() + "\t" + "[" + string.Join(", ", C_dat.ToArray()) + "]\t C_count array size: " + C_count.ToString() + " \t" + "[" + string.Join(", ", T_dat.ToArray()) + "]\t T_count array size: " + T_count.ToString());
-
-                                        //skipping output for yut file
-
                                         //qC_hat and qT_hat should be different almost all of the time
                                         double qC_hat = qC_0 / qC_1;
                                         double qT_hat = qT_0 / qT_1;
@@ -220,9 +198,6 @@ namespace mg_gap
                                                 diverge_0++;
                                             }
 
-                                            //raw_results.Add(cols[0] + '\t' + cols[1] + qC_1.ToString() + '\t' + qC_hat.ToString()
-                                            //    + '\t' + qT_1.ToString() + '\t' + qT_hat.ToString() + '\t' + diverge.ToString() + '\n');
-
                                             Random rnd = new Random();
                                             if (rnd.Next(1, 3) == 1)
                                             {
@@ -238,13 +213,22 @@ namespace mg_gap
                                             double t_C_pop = Math.Asin(Math.Sqrt(qC_hat));
                                             double t_T_pop = Math.Asin(Math.Sqrt(qT_hat));
                                             //SNP accepted.
-                                            accepted_snps.Add(cols[0] + "_" + cols[1] + '\t' + var_C + '\t' + var_T + '\t' + t_C_pop.ToString() + '\t' + t_T_pop.ToString());
+                                            //create the snp and add to list
+                                            SNP snp_inprogress = new SNP();
+                                            snp_inprogress.Chromosome = Convert.ToInt16(chrom);
+                                            snp_inprogress.Basepair = position;
+                                            snp_inprogress.C_variance = var_C;
+                                            snp_inprogress.T_variance = var_T;
+                                            snp_inprogress.Transformed_c_variance = t_C_pop;
+                                            snp_inprogress.Transformed_t_variance = t_T_pop;
+                                            snp_inprogress.Old_identifier = cols[0];
+                                            snp_list_raw.Add(snp_inprogress);
                                         }
                                         else
                                         {
                                             skipcounter++; //there should be no situation where the variance is 0, this undermines the point of a VCF file
                                         }
-                                        
+
                                     }
                                     else
                                     {
@@ -260,11 +244,11 @@ namespace mg_gap
             //wrap up
             Console.WriteLine("SNP processing complete, starting analysis...");
             Console.WriteLine("Skipped " + skipcounter + " SNPs");
-            Console.WriteLine("Accepted " + accepted_snps.Count + " SNPs");
+            Console.WriteLine("Accepted " + snp_list_raw.Count + " SNPs");
 
-            if (num_snps != accepted_snps.Count)
+            if (num_snps != snp_list_raw.Count)
             {
-                Console.WriteLine("number of accepted snp's varies from length of accepted list - respectively " + num_snps + " vs. " + accepted_snps.Count);
+                Console.WriteLine("number of accepted snp's varies from length of accepted list - respectively " + num_snps + " vs. " + snp_list_raw.Count);
             }
 
             Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDouble(num_snps)));
@@ -287,148 +271,139 @@ namespace mg_gap
             List<double> b_std = new List<double>();
             for (int k = 0; k < zraw.Count; k++)
             {
-                string unparsed_line = accepted_snps[k].ToString();
-                string[] parsedarray = unparsed_line.Split('\t').ToArray();
-                double vdiv = Var_neutral + Convert.ToDouble(parsedarray[1]) + Convert.ToDouble(parsedarray[2]); // 0 is snnffold_X, 1 is var_C and 2 is var_T
+                double vdiv = Var_neutral + snp_list_raw[k].C_variance + snp_list_raw[k].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
                 double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
-                b_std.Add(b);
-                bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
-                //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
+                snp_list_raw[k].B_standard = b;
             }
 
             //#####
-			//all below goes to b*
-			if (bs_go == 'Y')
-			{
-				//set things up from the chisq file
-				Console.WriteLine("Assembling chi square apparatus...");
-				List<double> df = new List<double>();
-				List<double> bs = new List<double>();
-				ArrayList[] percentiles = new ArrayList[100];
-				for (int i = 0; i < percentiles.Length; i++)
-				{
-					percentiles[i] = new ArrayList();
-				}
-				int line_idx = 0;
-				foreach (string line in File.ReadLines(in1))
-				{
-					string[] cols = line.Replace("\n", "").Split('\t');
-					df.Add(float.Parse(cols[0]));
-					for (int j = 0; j < 9; j++)
-					{
-						percentiles[line_idx].Add(float.Parse(cols[j + 1]));
-					}
-					double rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
-							  Convert.ToDouble(percentiles[line_idx][1])) /
-						(Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
-					bs.Add(rx);
-					line_idx++;
-					//Console.WriteLine("chisq enumeration: added DF " + cols[0] + " and RX " + rx); //adds DF from 0.1 to 10 with different RX per df
-				}
-				List<double> braw = new List<double>();
-				List<string> bloc = new List<string>();
-				List<double> b_sorted = new List<double>();
-				for (int k = window; k < num_snps; k++)
-				{
-					if (k % window == 0 || k % window == window / 2) //is end of window?
-					{
-						double b = 0.0;
-						for (int j = 0; j < window; j++)
-						{
-							b += Math.Pow(b_std[k - j], 2);
-						}
-						bloc.Add(Locations[k]);
-						braw.Add(b);
-						b_sorted.Add(b);
-					}
-				}
+            //all below goes to b*
+            if (bs_go == 'Y')
+            {
+                //set things up from the chisq file
+                Console.WriteLine("Assembling chi square apparatus...");
+                List<double> df = new List<double>();
+                List<double> bs = new List<double>();
+                ArrayList[] percentiles = new ArrayList[100];
+                for (int i = 0; i < percentiles.Length; i++)
+                {
+                    percentiles[i] = new ArrayList();
+                }
+                int line_idx = 0;
+                foreach (string line in File.ReadLines(in1))
+                {
+                    string[] cols = line.Replace("\n", "").Split('\t');
+                    df.Add(float.Parse(cols[0]));
+                    for (int j = 0; j < 9; j++)
+                    {
+                        percentiles[line_idx].Add(float.Parse(cols[j + 1]));
+                    }
+                    double rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
+                              Convert.ToDouble(percentiles[line_idx][1])) /
+                        (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
+                    bs.Add(rx);
+                    line_idx++;
+                    //Console.WriteLine("chisq enumeration: added DF " + cols[0] + " and RX " + rx); //adds DF from 0.1 to 10 with different RX per df
+                }
+                List<double> braw = new List<double>();
+                List<string> bloc = new List<string>();
+                List<double> b_sorted = new List<double>();
+                for (int k = window; k < num_snps; k++)
+                {
+                    if (k % window == 0 || k % window == window / 2) //is end of window?
+                    {
+                        double b = 0.0;
+                        for (int j = 0; j < window; j++)
+                        {
+                            b += Math.Pow(b_std[k - j], 2);
+                        }
+                        bloc.Add(Locations[k]);
+                        braw.Add(b);
+                        b_sorted.Add(b);
+                    }
+                }
 
-				b_sorted.Sort();
+                b_sorted.Sort();
 
-				//redo percentiles?
-				n25 = b_sorted[braw.Count / 4];
-				n50 = b_sorted[braw.Count / 2];
-				n75 = b_sorted[3 * braw.Count / 4];
+                //redo percentiles?
+                n25 = b_sorted[braw.Count / 4];
+                n50 = b_sorted[braw.Count / 2];
+                n75 = b_sorted[3 * braw.Count / 4];
 
-				double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
-				Console.WriteLine("B Bowley skew " + b_skew);
-				double m2 = -1.0;
-				int jstar = 0;
-				if (b_skew > bs[0])
-				{
-					Console.WriteLine("Too much skew.");
-				}
-				else
-				{
-					for (int j = 1; j < bs.Count; j++)
-					{
-						if (b_skew > bs[j])
-						{
-							m2 = df[j];
-							jstar = j;
-							break;
-						}
-					}
-				}
-				double cIQR_1 = Convert.ToDouble(percentiles[jstar][2]);
-				double cIQR_2 = Convert.ToDouble(percentiles[jstar][0]);
-				double cIQR = cIQR_1 - cIQR_2;
-				double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
+                double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
+                Console.WriteLine("B Bowley skew " + b_skew);
+                double m2 = -1.0;
+                int jstar = 0;
+                if (b_skew > bs[0])
+                {
+                    Console.WriteLine("Too much skew.");
+                }
+                else
+                {
+                    for (int j = 1; j < bs.Count; j++)
+                    {
+                        if (b_skew > bs[j])
+                        {
+                            m2 = df[j];
+                            jstar = j;
+                            break;
+                        }
+                    }
+                }
+                double cIQR_1 = Convert.ToDouble(percentiles[jstar][2]);
+                double cIQR_2 = Convert.ToDouble(percentiles[jstar][0]);
+                double cIQR = cIQR_1 - cIQR_2;
+                double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
 
-				double p = 0.0;
-				for (int j = 0; j < b_sorted.Count; j++)
-				{
-					double bx = braw[j];
-					double b_star = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
-					if (b_star < Convert.ToDouble(percentiles[jstar][3]))
-					{
-						p = 0.5;
-					}
-					else if (b_star > Convert.ToDouble(percentiles[jstar][8]))
-					{
-						p = 5.0 * Math.Pow(10, (1.0 - 8.5)); //p < table minimum
-					}
-					else
-					{
-						for (int k = 4; k < 9; k++)
-						{
-							if (b_star > Convert.ToDouble(percentiles[jstar][k - 1]) && b_star <= Convert.ToDouble(percentiles[jstar][k]))
-							{
-								double dx = (b_star - Convert.ToDouble(percentiles[jstar][k - 1])) / (Convert.ToDouble(percentiles[jstar][k]) - Convert.ToDouble(percentiles[jstar][k - 1]));
-								double x = k - 1 + dx;
-								p = 5.0 * Math.Pow(10, (1.0 - x));
-								break;
-							}
-						}
-					}
-					string midpoint = string.Empty;
-					if (j > 0)
-					{
-						midpoint = bloc[j - 1].ToString();
-					}
-					else
-					{
-						midpoint = bloc[j].ToString();
-					}
-					bs_list.Add(midpoint + '\t' + bx.ToString() + '\t' + b_star.ToString() + '\t' + p.ToString());
-				}
-			}
+                double p = 0.0;
+                for (int j = 0; j < b_sorted.Count; j++)
+                {
+                    double bx = braw[j];
+                    double b_star = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
+                    if (b_star < Convert.ToDouble(percentiles[jstar][3]))
+                    {
+                        p = 0.5;
+                    }
+                    else if (b_star > Convert.ToDouble(percentiles[jstar][8]))
+                    {
+                        p = 5.0 * Math.Pow(10, (1.0 - 8.5)); //p < table minimum
+                    }
+                    else
+                    {
+                        for (int k = 4; k < 9; k++)
+                        {
+                            if (b_star > Convert.ToDouble(percentiles[jstar][k - 1]) && b_star <= Convert.ToDouble(percentiles[jstar][k]))
+                            {
+                                double dx = (b_star - Convert.ToDouble(percentiles[jstar][k - 1])) / (Convert.ToDouble(percentiles[jstar][k]) - Convert.ToDouble(percentiles[jstar][k - 1]));
+                                double x = k - 1 + dx;
+                                p = 5.0 * Math.Pow(10, (1.0 - x));
+                                break;
+                            }
+                        }
+                    }
+                    string midpoint = string.Empty;
+                    if (j > 0)
+                    {
+                        midpoint = bloc[j - 1].ToString();
+                    }
+                    else
+                    {
+                        midpoint = bloc[j].ToString();
+                    }
 
-            
+                    snp_list_raw[j].B_star = b_star;
+                    snp_list_raw[j].Raw_p = p;
+                }
+            }
+
+
 
             //build the b list
             Console.WriteLine("Building the B list...");
-			Console.WriteLine("Analysis complete...");
+            Console.WriteLine("Analysis complete...");
 
             //if this is the version of the run where we want to get B*...
-            if (bs_go == 'Y')
-            {
-                return bs_list;
-            }
-            else
-            {
-                return bList;
-            }   
+            return snp_list_raw;
         }
     }
 }

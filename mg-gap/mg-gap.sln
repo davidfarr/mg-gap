@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mg-gap", "mg-gap\mg-gap.csproj", "{1A671ABC-6003-4069-810C-354821BC09EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mg-gapv2", "mg-gapv2\mg-gapv2.csproj", "{12E3D143-D79A-4463-9FE3-9E661379E643}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{1A671ABC-6003-4069-810C-354821BC09EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A671ABC-6003-4069-810C-354821BC09EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A671ABC-6003-4069-810C-354821BC09EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12E3D143-D79A-4463-9FE3-9E661379E643}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12E3D143-D79A-4463-9FE3-9E661379E643}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12E3D143-D79A-4463-9FE3-9E661379E643}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12E3D143-D79A-4463-9FE3-9E661379E643}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

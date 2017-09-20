@@ -60,6 +60,8 @@
     <Compile Include="FDR.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SNP.cs" />
+    <Compile Include="VCF-Analyzer.cs" />
     <Compile Include="VcfParser.cs" />
   </ItemGroup>
   <ItemGroup>

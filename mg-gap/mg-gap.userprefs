@@ -1,0 +1,21 @@
+﻿<Properties StartupConfiguration="{1A671ABC-6003-4069-810C-354821BC09EB}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="mg-gap/VcfParser.cs">
+    <Files>
+      <File FileName="mg-gap/Program.cs" Line="38" Column="1" NotebookId="1" />
+    </Files>
+    <FloatingWindows>
+      <FloatingWindow WindowId="1" X="949" Y="23" Width="970" Height="970">
+        <Files>
+          <File FileName="mg-gap/VcfParser.cs" Line="332" Column="5" />
+        </Files>
+      </FloatingWindow>
+    </FloatingWindows>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.ItemProperties.mg-gap PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>
