@@ -51,7 +51,6 @@ mg-gap/mg-gap/bin/Debug/B1_1703020932.txt
 *.txt
 *.txt
 mg-gap/mg-gap/bin/Debug/B1.txt
-
-*.csv
-
-*.userprefs
+mg-gap/.vs/mg-gap/v14/.suo
+*.exe
+*.pdb
