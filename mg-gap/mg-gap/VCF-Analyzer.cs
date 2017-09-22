@@ -24,6 +24,9 @@ namespace mg_gap
             List<string> Locations = new List<string>();
             List<double> ranked_z = new List<double>();
 
+            //temporary
+            List<string> bs_list = new List<string>();
+
             //set up counters
             int num_snps = 0; //this should be a total of all the *accepted* SNP's in the file
             double Var_snp_specific = (double)0.0;
@@ -224,6 +227,7 @@ namespace mg_gap
                                             snp_inprogress.Transformed_t_variance = t_T_pop;
                                             snp_inprogress.Old_identifier = cols[0];
                                             snp_list_raw.Add(snp_inprogress);
+
                                         }
                                         else
                                         {
@@ -262,6 +266,10 @@ namespace mg_gap
             var n25 = ranked_z[num_snps / 4];
             var n50 = ranked_z[num_snps / 2];
             var n75 = ranked_z[3 * num_snps / 4];
+
+         
+
+
             Console.WriteLine("Z percentiles (without direction) " + n25 + " " + n50 + " " + n75);
             Console.WriteLine("Total variance in Z (based on IQR) " + Math.Pow((n75 - n25 / 1.349), 2));
 
@@ -272,7 +280,9 @@ namespace mg_gap
             for (int k = 0; k < snp_list_raw.Count; k++)
             {
                 double vdiv = Var_neutral + snp_list_raw[k].C_variance + snp_list_raw[k].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
-                double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
+                //double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
+                double b = Math.Pow(Convert.ToDouble(snp_list_raw[k].Divergence), 2) / vdiv;
+
                 snp_list_raw[k].B_standard = b;
             }
 
@@ -290,7 +300,7 @@ namespace mg_gap
                     percentiles[i] = new ArrayList();
                 }
                 int line_idx = 0;
-                foreach (string line in File.ReadLines(in1))
+                foreach (string line in File.ReadLines(in1)) //this is the chisq file
                 {
                     string[] cols = line.Replace("\n", "").Split('\t');
                     df.Add(float.Parse(cols[0]));
@@ -391,8 +401,12 @@ namespace mg_gap
                         midpoint = bloc[j].ToString();
                     }
 
-                    snp_list_raw[j].B_star = b_star;
-                    snp_list_raw[j].Raw_p = p;
+                    SNP searchsnp = (from x in snp_list_raw where (x.Old_identifier + "_" + x.Basepair) == midpoint select x).First();
+                    searchsnp.B_star = b_star;
+                    searchsnp.B_standard = bx;
+                    searchsnp.Raw_p = p;
+
+                    //bs_list.Add(midpoint + '\t' + bx.ToString() + '\t' + b_star.ToString() + '\t' + p.ToString());
                 }
             }
 
@@ -400,6 +414,10 @@ namespace mg_gap
 
             //build the b list
             Console.WriteLine("Building the B list...");
+            Console.WriteLine("B* available for " + bs_list.Count() + " of " + snp_list_raw.Count + " SNPs.");
+            
+
+
             Console.WriteLine("Analysis complete...");
 
             //if this is the version of the run where we want to get B*...

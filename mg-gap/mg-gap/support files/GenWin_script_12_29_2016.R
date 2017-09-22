@@ -16,17 +16,17 @@ library(GenWin) #for spline-based window analysis
 #setwd("N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
 setwd("C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
 
-file <- read.table("B1_new.txt", header=FALSE)
+file <- read.table("B1_new.txt", header=TRUE)
   
 #give the file appropriate column names
 # colnames(file) <- c("Scaffoldraw","B","Bs","P") #this was original
-colnames(file) <- c("Scaffoldraw","B")
+#colnames(file) <- c("Scaffoldraw","B")
   
 #split the location into separate columns for SNP, chromosome, and base pair and give appropriate column headers
-file <- separate(data=file, col = Scaffoldraw, into = c("SNP","CHR","BP"),sep = "\\_") 
+#file <- separate(data=file, col = Scaffoldraw, into = c("SNP","CHR","BP"),sep = "\\_") 
 
 #trim out the first row, since the first BP is repeated and will cause GenWin to choke
-file <- file[-1,]
+#file <- file[-1,]
 
 #set CHR and BP to numeric mode, and then trim all data not associated with scaffolds 1-14 (note to Ali: any useful data in CHR 15-18? ask JK)
 file$CHR <- as.numeric(file$CHR)

@@ -21,6 +21,7 @@ namespace mg_gap
         private double t_variance = 0.00;
         private double transformed_c_variance = 0.0;
         private double transformed_t_variance = 0.0;
+        private double divergence = 0.0;
 
         public int Basepair { get { return basepair; } set { basepair = value; } }
         public int Chromosome { get { return chromosome; } set { chromosome = value; } }
@@ -33,6 +34,7 @@ namespace mg_gap
         public double Transformed_c_variance { get { return transformed_c_variance; } set { transformed_c_variance = value; } }
         public double Transformed_t_variance { get { return transformed_t_variance; } set { transformed_t_variance = value; } }
         public string Old_identifier { get { return old_identifier; } set { old_identifier = value; } }
+        public double Divergence { get { return divergence; } set { divergence = value; } }
 
     }
 }
