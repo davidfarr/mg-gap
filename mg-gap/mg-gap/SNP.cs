@@ -11,7 +11,6 @@ namespace mg_gap
         //set up the properties that each SNP should have
         private int basepair = 0;
         private int chromosome = 0;
-        private string alleledepth = string.Empty;
         private double b_standard = 0.00;
         private double b_star = 0.00;
         private double raw_p = 0.00;
@@ -25,7 +24,6 @@ namespace mg_gap
 
         public int Basepair { get { return basepair; } set { basepair = value; } }
         public int Chromosome { get { return chromosome; } set { chromosome = value; } }
-        public string Alleledepth { get { return alleledepth; } set { alleledepth = value; } }
         public double B_standard { get { return b_standard; } set { b_standard = value; } }
         public double B_star { get { return b_star; } set { b_star = value; } }
         public double Raw_p { get { return raw_p; } set { raw_p = value; } }

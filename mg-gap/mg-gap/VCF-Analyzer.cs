@@ -66,11 +66,12 @@ namespace mg_gap
                          * 6 = also literally just a period .
                          * 7 = Example: AC=4;AF=0.500;AN=8;BaseQRankSum=-0.045;DP=23;Dels=0.00;FS=2.632;HaplotypeScore=0.2493;MLEAC=4;MLEAF=0.500;MQ=33.07;MQ0=2;MQRankSum=3.000;QD=5.11;ReadPosRankSum=-0.313
                          * 8 = GT:AD:DP:GQ:PL
-                         * 9 = 0/0:5,0:5:12:0,12,135 (CA set)
-                         * 10 = 0/1:8,1:9:16:16,0,185 (CB set)
-                         * 11 = ./. (S set)
-                         * 12 = 1/1:2,2:4:6:80,6,0 (TA set)
-                         * 13 = 0/1:4,1:5:31:31,0,49 (TB set)
+                         * 9 = 767 as below
+                         * 10 = 0/0:5,0:5:12:0,12,135 (CA set)
+                         * 11 = 0/1:8,1:9:16:16,0,185 (CB set)
+                         * 12 = ./. (S set)
+                         * 13 = 1/1:2,2:4:6:80,6,0 (TA set)
+                         * 14 = 0/1:4,1:5:31:31,0,49 (TB set)
                          * keep in mind that not every snp has every set for data - some might have s, some might have ca, etc
                          * */
 
@@ -98,8 +99,8 @@ namespace mg_gap
                                 //ArrayList T_dat = new ArrayList();
                                 List<double> T_dat = new List<double> { };
 
-                                for (int j = 9; j < 9 + 5; j++) //line 76 in python
-                                //for (int j = 10; j < 9 + 6; j++) //line 76 in python with 767
+                                //for (int j = 9; j < 9 + 5; j++) //line 76 in python
+                                for (int j = 10; j < 9 + 6; j++) //line 76 in python with 767
 
                                 {
                                     if (cols.Length < (9 + 5))
@@ -121,7 +122,7 @@ namespace mg_gap
                                         //    Console.WriteLine("Row info column " + i + ": " + info[i]);
                                         //}
 
-                                        if (info.Length == 5 && j < 12)
+                                        if (info.Length == 5 && j < 13) //12 for non-767 set
 
                                         {
                                             string[] AD = info[1].Split(',');
@@ -132,7 +133,7 @@ namespace mg_gap
                                                 C_dat.Add(Convert.ToInt32(AD[1]));
                                             }
                                         }
-                                        if (info.Length == 5 && j >= 12)
+                                        if (info.Length == 5 && j >= 13) //12 for non-767
                                         {
                                             string[] ad = info[1].Split(',');
                                             if (Convert.ToInt32(ad[0]) + Convert.ToInt32(ad[1]) > 0)
@@ -268,8 +269,7 @@ namespace mg_gap
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
 
             //make an unsorted B list - the output of this is the last step if just doing B
-            List<double> b_std = new List<double>();
-            for (int k = 0; k < zraw.Count; k++)
+            for (int k = 0; k < snp_list_raw.Count; k++)
             {
                 double vdiv = Var_neutral + snp_list_raw[k].C_variance + snp_list_raw[k].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
                 double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
@@ -315,7 +315,7 @@ namespace mg_gap
                         double b = 0.0;
                         for (int j = 0; j < window; j++)
                         {
-                            b += Math.Pow(b_std[k - j], 2);
+                            b += Math.Pow(snp_list_raw[k - j].B_standard, 2);
                         }
                         bloc.Add(Locations[k]);
                         braw.Add(b);
