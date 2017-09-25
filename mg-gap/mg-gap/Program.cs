@@ -17,8 +17,8 @@ namespace v1_gap
         public static void Main(string[] args)
         {
             //set up the filepath - in this version it's hard-coded
-            //string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/ali.vcf";
-            string vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
+            string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
+            //string vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
@@ -26,44 +26,44 @@ namespace v1_gap
             methodTime.Start();
 
 
-            ////new way for R work prep
-            //using (StreamWriter write_results = File.CreateText("B1_new.txt"))
-            //{
-            //    write_results.WriteLine("CHR\tBP\tB");
+            //new way for R work prep
+            using (StreamWriter write_results = File.CreateText("B1_new.txt"))
+            {
+                write_results.WriteLine("CHR\tBP\tB");
 
-            //    foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(1, vcf_path, 'N'))
-            //    {
-            //        write_results.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
-            //    }
-            //}
+                foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(1, vcf_path, 'N'))
+                {
+                    write_results.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
+                }
+            }
 
 
-            //methodTime.Stop();
-            //Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
+            methodTime.Stop();
+            Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
 
-            //try
-            //{
-            //    //do R stuff
-            //    Console.WriteLine("Beginning R execution at " + DateTime.Now);
-            //    Stopwatch r_stopwatch = new Stopwatch();
-            //    r_stopwatch.Start();
-            //    REngine engine = REngine.GetInstance();
-            //    Console.WriteLine("Successfully created R engine instance. Evaluating script...");
-            //    //string rscriptpath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //lab env
-            //    string rscriptpath = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //personal env
-            //    engine.Evaluate(@"source('" + rscriptpath + "')");
-            //    r_stopwatch.Stop();
-            //    Console.WriteLine("R exited successfully at " + DateTime.Now + "\nRun time " + r_stopwatch.Elapsed.ToString());
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine(ex.Message);
-            //}
+            try
+            {
+                //do R stuff
+                Console.WriteLine("Beginning R execution at " + DateTime.Now);
+                Stopwatch r_stopwatch = new Stopwatch();
+                r_stopwatch.Start();
+                REngine engine = REngine.GetInstance();
+                Console.WriteLine("Successfully created R engine instance. Evaluating script...");
+                string rscriptpath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //lab env
+                //string rscriptpath = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //personal env
+                engine.Evaluate(@"source('" + rscriptpath + "')");
+                r_stopwatch.Stop();
+                Console.WriteLine("R exited successfully at " + DateTime.Now + "\nRun time " + r_stopwatch.Elapsed.ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
             //after this then find the median out of the output file and then run the b processing at that window and then b* processing - then move to java program
             //check if we recognize that the file has now been put there
-            //string splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
-            string splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
+            string splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
+            //string splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
 
 
             double median = 0.0;

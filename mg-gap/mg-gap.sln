@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mg-gap", "mg-gap\mg-gap.csproj", "{1A671ABC-6003-4069-810C-354821BC09EB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mg-gapv2", "mg-gapv2\mg-gapv2.csproj", "{12E3D143-D79A-4463-9FE3-9E661379E643}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,12 +15,11 @@ Global
 		{1A671ABC-6003-4069-810C-354821BC09EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A671ABC-6003-4069-810C-354821BC09EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A671ABC-6003-4069-810C-354821BC09EB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{12E3D143-D79A-4463-9FE3-9E661379E643}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12E3D143-D79A-4463-9FE3-9E661379E643}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12E3D143-D79A-4463-9FE3-9E661379E643}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12E3D143-D79A-4463-9FE3-9E661379E643}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {164F4392-2C1B-4099-BF55-3871D6900648}
 	EndGlobalSection
 EndGlobal
