@@ -11,7 +11,7 @@ namespace mg_gap
     {
         //read the VCF... create a list of SNP's with their info in a method and return the "list" of SNPs back to the main program file
 
-        public static List<SNP> snp_list(int window, string vcfpath, char bs_go)
+        public static List<SNP> SNP_list(int window, string vcfpath, char bs_go)
         {
             //create the empty list
             List<SNP> snp_list_raw = new List<SNP>(); //stores all SNPs and all their info in the analysis
@@ -280,14 +280,15 @@ namespace mg_gap
             for (int k = 0; k < snp_list_raw.Count; k++)
             {
                 double vdiv = Var_neutral + snp_list_raw[k].C_variance + snp_list_raw[k].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
-                //double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
-                double b = Math.Pow(Convert.ToDouble(snp_list_raw[k].Divergence), 2) / vdiv;
+                double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
+                //double b = Math.Pow(Convert.ToDouble(snp_list_raw[k].Divergence), 2) / vdiv;
 
                 snp_list_raw[k].B_standard = b;
             }
 
             //#####
             //all below goes to b*
+            Console.WriteLine("Calculating B* for " + snp_list_raw.Count + " SNPs.");
             if (bs_go == 'Y')
             {
                 //set things up from the chisq file
@@ -368,6 +369,11 @@ namespace mg_gap
                 double p = 0.0;
                 for (int j = 0; j < b_sorted.Count; j++)
                 {
+                    double total = Convert.ToDouble(b_sorted.Count());
+                    double progress = j / total;
+                    progress = Math.Round(progress, 2);
+                    progress = progress * 100;
+                    Console.Write("\r" + progress + "% Complete.");
                     double bx = braw[j];
                     double b_star = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
                     if (b_star < Convert.ToDouble(percentiles[jstar][3]))
@@ -401,7 +407,8 @@ namespace mg_gap
                         midpoint = bloc[j].ToString();
                     }
 
-                    SNP searchsnp = (from x in snp_list_raw where (x.Old_identifier + "_" + x.Basepair) == midpoint select x).First();
+                    //SNP searchsnp = (from x in snp_list_raw where (x.Old_identifier + "_" + x.Basepair) == midpoint select x).First();
+                    SNP searchsnp = snp_list_raw.Find(x => (x.Old_identifier + "_" + x.Basepair) == midpoint);
                     searchsnp.B_star = b_star;
                     searchsnp.B_standard = bx;
                     searchsnp.Raw_p = p;

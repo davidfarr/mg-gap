@@ -26,39 +26,39 @@ namespace v1_gap
             methodTime.Start();
 
 
-            //new way for R work prep
-            using (StreamWriter write_results = File.CreateText("B1_new.txt"))
-            {
-                write_results.WriteLine("CHR\tBP\tB");
+            ////new way for R work prep
+            //using (StreamWriter write_results = File.CreateText("B1_new.txt"))
+            //{
+            //    write_results.WriteLine("CHR\tBP\tB");
 
-                foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.snp_list(1, vcf_path, 'N'))
-                {
-                    write_results.WriteLine(snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
-                }
-            }
+            //    foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(1, vcf_path, 'N'))
+            //    {
+            //        write_results.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
+            //    }
+            //}
 
 
-            methodTime.Stop();
-            Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
+            //methodTime.Stop();
+            //Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
 
-            try
-            {
-                //do R stuff
-                Console.WriteLine("Beginning R execution at " + DateTime.Now);
-                Stopwatch r_stopwatch = new Stopwatch();
-                r_stopwatch.Start();
-                REngine engine = REngine.GetInstance();
-                Console.WriteLine("Successfully created R engine instance. Evaluating script...");
-                //string rscriptpath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //lab env
-                string rscriptpath = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //personal env
-                engine.Evaluate(@"source('" + rscriptpath + "')");
-                r_stopwatch.Stop();
-                Console.WriteLine("R exited successfully at " + DateTime.Now + "\nRun time " + r_stopwatch.Elapsed.ToString());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            //try
+            //{
+            //    //do R stuff
+            //    Console.WriteLine("Beginning R execution at " + DateTime.Now);
+            //    Stopwatch r_stopwatch = new Stopwatch();
+            //    r_stopwatch.Start();
+            //    REngine engine = REngine.GetInstance();
+            //    Console.WriteLine("Successfully created R engine instance. Evaluating script...");
+            //    //string rscriptpath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //lab env
+            //    string rscriptpath = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //personal env
+            //    engine.Evaluate(@"source('" + rscriptpath + "')");
+            //    r_stopwatch.Stop();
+            //    Console.WriteLine("R exited successfully at " + DateTime.Now + "\nRun time " + r_stopwatch.Elapsed.ToString());
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
 
             //after this then find the median out of the output file and then run the b processing at that window and then b* processing - then move to java program
             //check if we recognize that the file has now been put there
@@ -86,9 +86,9 @@ namespace v1_gap
                              * 3 = SNP count (number of snps in the window)
                              * 4 = Mean Y
                              * 5 = W statistic
-                             * */ 
-                             //first row is headers, skip
-                             if (!line.Contains("CHRcol"))
+                             * */
+                            //first row is headers, skip
+                            if (!line.Contains("CHRcol"))
                             {
                                 string[] cols = line.Replace("\n", "").Split('\t');
                                 windows.Add(Convert.ToInt16(cols[3]));
@@ -119,15 +119,19 @@ namespace v1_gap
             }
 
             //now feed the median value back through b processing, then b*
+            //need to hold on to the data for FDR though
+            List<mg_gap.SNP> snpList = new List<mg_gap.SNP>();
+
             if (median > 0)
             {
                 Console.WriteLine("Re-analyzing for B* based on median window size " + median + " @ " + DateTime.Now);
-                //List<string> b_star_Result = mg_gap.VcfParser.b_processing((int)median, vcf_path, 'Y'); //window is median, do get b*
+                snpList = mg_gap.VCF_Analyzer.SNP_list(Convert.ToInt32(median), vcf_path, 'Y');
                 Console.WriteLine("Analysis complete at " + DateTime.Now + ", writing B* results file...");
                 using (StreamWriter bsfile = File.CreateText("Bs_" + median + ".txt"))
                 {
                     bsfile.WriteLine("CHR\tBP\tB\tBs\tP");
-                    foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.snp_list(Convert.ToInt32(median), vcf_path, 'Y'))
+                    //foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(Convert.ToInt32(median), vcf_path, 'Y'))
+                    foreach (mg_gap.SNP snp in snpList)
                     {
                         bsfile.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' +
                             snp.B_standard + '\t' + snp.B_star + '\t' +
@@ -136,13 +140,11 @@ namespace v1_gap
                 }
             }
 
-            //the FDR calculations are safest done in the program - execute
-            //string filepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/bin/Debug/Bs_" + median + ".txt";
-            //if (File.Exists(filepath))
-            //{
-            //    Console.WriteLine("Bs file path valid - initiating FDR analysis...");
-            //    mg_gap.FDR.assessment(filepath);
-            //}
+            //Start the FDR process
+            Console.WriteLine("What FDR would you like to run against annotation? (Enter as decimal)");
+            double fdr_input = 0.00;
+            double.TryParse(Console.ReadLine(), out fdr_input);
+            mg_gap.FDR.Process(snpList, fdr_input);
 
             //force to wait before closing
             Console.WriteLine("Program complete, press any key to exit.");

@@ -9,32 +9,19 @@ namespace mg_gap
 {
     class FDR
     {
-        public static List<string> assessment (string filepath)
+        //The FDR process is:
+        //1. Sort B* list by p-value
+        //2. Add new property FDR where FDR = 0.1 * index of the ranked SNP / (count of SNPs in the file / 2)
+        //3*. FDR can be changed... 0.1 above is FDR of 10 and 0.05 is FDR 5
+
+        public static void Process (List<SNP> bs_list, double fdr_selected)
         {
-            List<string> treated_list = new List<string>();
-            SortedList<string, double> sorted = new SortedList<string, double>();
-
-            using (var fileStream = File.OpenRead(filepath))
-            using (var streamReader = new StreamReader(fileStream))
+            bs_list.OrderBy(x => x.Raw_p);
+            foreach (SNP snp in bs_list)
             {
-                String line;
-                while ((line = streamReader.ReadLine()) != null)
-                {
-                    //pull the bs list into another list
-                    string[] linearray = line.Split('\t');
-                    sorted.Add(linearray[0], Convert.ToDouble(linearray[3]));
-                }
+                snp.FDR = fdr_selected * bs_list.IndexOf(snp) / (bs_list.Count / 2);
+                //check it out here
             }
-
-            //we have now a list sorted from the file based on auto-sorted p values
-            foreach(var pair in sorted)
-            {
-
-            }
-
-
-
-            return treated_list;
         }
     }
 }
