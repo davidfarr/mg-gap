@@ -7037,7 +7037,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\David\\.nuget\\packages\\": {}
+    "C:\\Users\\farrda\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
@@ -7045,14 +7045,14 @@
       "hideWarningsAndErrors": true
     },
     "restore": {
-      "projectUniqueName": "C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gapv2\\mg-gapv2.csproj",
+      "projectUniqueName": "N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gapv2\\mg-gapv2.csproj",
       "projectName": "mg-gapv2",
-      "projectPath": "C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gapv2\\mg-gapv2.csproj",
-      "packagesPath": "C:\\Users\\David\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gapv2\\obj\\",
+      "projectPath": "N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gapv2\\mg-gapv2.csproj",
+      "packagesPath": "C:\\Users\\farrda\\.nuget\\packages\\",
+      "outputPath": "N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gapv2\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\David\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\farrda\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
