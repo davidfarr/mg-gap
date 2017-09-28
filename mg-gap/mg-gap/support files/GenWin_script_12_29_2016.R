@@ -13,8 +13,8 @@ library(GenWin) #for spline-based window analysis
 
 #Set appropriate working directory and read in B1.txt file containing B* values based on a window size of 1
 #Note: B1.txt is output from JK's python script
-#setwd("N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
-setwd("C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
+setwd("N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
+#setwd("C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
 
 file <- read.table("B1_new.txt", header=TRUE)
   

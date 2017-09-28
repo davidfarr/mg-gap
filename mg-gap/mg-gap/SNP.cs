@@ -35,6 +35,7 @@ namespace mg_gap
         public double Transformed_t_variance { get { return transformed_t_variance; } set { transformed_t_variance = value; } }
         public string Old_identifier { get { return old_identifier; } set { old_identifier = value; } }
         public double FDR { get { return fdr; } set { fdr = value; } }
+        public string Description { get { return description; } set { description = value; } }
 
     }
 }

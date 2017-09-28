@@ -16,8 +16,8 @@ namespace mg_gap
             //create the empty list
             List<SNP> snp_list_raw = new List<SNP>(); //stores all SNPs and all their info in the analysis
 
-            string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
-            in1 = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
+            string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
+            //in1 = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
             //these may be user defined
             int min_reads = 20;
             List<string> LineID = new List<string>(); //may not do anything useful
@@ -187,7 +187,7 @@ namespace mg_gap
                                         if (qC_hat != qT_hat) //this catches any time qC_hat and qT_hat are the same - which shouldn't really happen and so throw them out
                                         {
                                             //moved down one logic level to prevent num_snp's from being off in final calculations
-                                            Locations.Add(cols[0] + "_" + cols[1]);
+                                            Locations.Add(cols[0] + "_" + cols[1]); //snffold_1_322342
                                             num_snps++;
 
                                             double var_C = 1.0 / qC_1;
@@ -288,9 +288,10 @@ namespace mg_gap
 
             //#####
             //all below goes to b*
-            Console.WriteLine("Calculating B* for " + snp_list_raw.Count + " SNPs.");
             if (bs_go == 'Y')
             {
+                Console.WriteLine("Calculating B* for " + snp_list_raw.Count + " SNPs.");
+
                 //set things up from the chisq file
                 Console.WriteLine("Assembling chi square apparatus...");
                 List<double> df = new List<double>();
@@ -316,8 +317,9 @@ namespace mg_gap
                     line_idx++;
                     //Console.WriteLine("chisq enumeration: added DF " + cols[0] + " and RX " + rx); //adds DF from 0.1 to 10 with different RX per df
                 }
-                List<double> braw = new List<double>();
-                List<string> bloc = new List<string>();
+                //List<double> braw = new List<double>();
+                //List<string> bloc = new List<string>();
+                //List<SNP> bloc = new List<SNP>();
                 List<double> b_sorted = new List<double>();
                 for (int k = window; k < num_snps; k++)
                 {
@@ -328,18 +330,20 @@ namespace mg_gap
                         {
                             b += Math.Pow(snp_list_raw[k - j].B_standard, 2);
                         }
-                        bloc.Add(Locations[k]);
-                        braw.Add(b);
+                        //bloc.Add(Locations[k]);
+                        //bloc.Add(snp_list_raw[k]);
+                        //braw.Add(b);
+                        snp_list_raw[k].B_standard = b;
                         b_sorted.Add(b);
                     }
                 }
 
-                b_sorted.Sort();
+                //b_sorted.Sort();
 
-                //redo percentiles?
-                n25 = b_sorted[braw.Count / 4];
-                n50 = b_sorted[braw.Count / 2];
-                n75 = b_sorted[3 * braw.Count / 4];
+                ////redo percentiles?
+                //n25 = b_sorted[snp_list_raw.Count / 4];
+                //n50 = b_sorted[snp_list_raw.Count / 2];
+                //n75 = b_sorted[3 * snp_list_raw.Count / 4];
 
                 double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
                 Console.WriteLine("B Bowley skew " + b_skew);
@@ -374,7 +378,8 @@ namespace mg_gap
                     progress = Math.Round(progress, 2);
                     progress = progress * 100;
                     Console.Write("\r" + progress + "% Complete.");
-                    double bx = braw[j];
+                    //double bx = braw[j];
+                    double bx = snp_list_raw[j].B_standard;
                     double b_star = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
                     if (b_star < Convert.ToDouble(percentiles[jstar][3]))
                     {
@@ -397,21 +402,28 @@ namespace mg_gap
                             }
                         }
                     }
-                    string midpoint = string.Empty;
-                    if (j > 0)
-                    {
-                        midpoint = bloc[j - 1].ToString();
-                    }
-                    else
-                    {
-                        midpoint = bloc[j].ToString();
-                    }
+                    snp_list_raw[j].B_star = b_star;
+                    snp_list_raw[j].B_standard = bx;
+                    snp_list_raw[j].Raw_p = p;
+                    //string midpoint = string.Empty;
+                    //if (j > 0)
+                    //{
+                    //    midpoint = bloc[j - 1].ToString();
+                    //}
+                    //else
+                    //{
+                    //    midpoint = bloc[j].ToString();
+                    //}
 
                     //SNP searchsnp = (from x in snp_list_raw where (x.Old_identifier + "_" + x.Basepair) == midpoint select x).First();
-                    SNP searchsnp = snp_list_raw.Find(x => (x.Old_identifier + "_" + x.Basepair) == midpoint);
-                    searchsnp.B_star = b_star;
-                    searchsnp.B_standard = bx;
-                    searchsnp.Raw_p = p;
+                    //SNP searchsnp = snp_list_raw.Find(x => (x.Old_identifier + "_" + x.Basepair) == midpoint);
+                    //searchsnp.B_star = b_star;
+                    //searchsnp.B_standard = bx;
+                    //searchsnp.Raw_p = p;
+
+                    
+
+
 
                     //bs_list.Add(midpoint + '\t' + bx.ToString() + '\t' + b_star.ToString() + '\t' + p.ToString());
                 }
