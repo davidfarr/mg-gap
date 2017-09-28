@@ -20,8 +20,15 @@ namespace mg_gap
             foreach (SNP snp in bs_list)
             {
                 snp.FDR = fdr_selected * bs_list.IndexOf(snp) / (bs_list.Count / 2);
-                //check it out here
+                //get the significant b. the sig b is the last snp where the p val < FDR
+                if (snp.Raw_p > snp.FDR)
+                {
+                    bs_list.Remove(snp); //did not make FDR cutoff
+                }
             }
+            //now show the sig b*
+            int lastsnp = bs_list.Count();
+            Console.WriteLine("Significant B* = " + bs_list[lastsnp].B_star);
         }
     }
 }
