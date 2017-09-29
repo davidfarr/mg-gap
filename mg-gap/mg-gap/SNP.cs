@@ -14,7 +14,7 @@ namespace mg_gap
         private double b_standard = 0.00;
         private double b_star = 0.00;
         private double raw_p = 0.00;
-        private double adjusted_p = 0.00;
+        private string adjusted_p = string.Empty;
         private string description = string.Empty;
         private string old_identifier = string.Empty; //snnfold_X
         private double c_variance = 0.00;
@@ -28,7 +28,7 @@ namespace mg_gap
         public double B_standard { get { return b_standard; } set { b_standard = value; } }
         public double B_star { get { return b_star; } set { b_star = value; } }
         public double Raw_p { get { return raw_p; } set { raw_p = value; } }
-        public double Adjusted_P { get { return adjusted_p; } set { adjusted_p = value; } }
+        public string Adjusted_P { get { return adjusted_p; } set { adjusted_p = value; } }
         public double C_variance { get { return c_variance; } set { c_variance = value; } }
         public double T_variance { get { return t_variance; } set { t_variance = value; } }
         public double Transformed_c_variance { get { return transformed_c_variance; } set { transformed_c_variance = value; } }

@@ -29,9 +29,8 @@ namespace mg_gap
                             {
                                 if (Convert.ToInt32(cols[20]) < fdrList[i].Basepair && fdrList[i].Basepair > Convert.ToDouble(cols[21]))
                                 {
-                                    fdrList[i].Description = cols[31];
-                                    fdrList[i].Adjusted_P = double.Parse(cols[7].ToString(), System.Globalization.NumberStyles.Float);
-                                    progress++;
+                                    fdrList[i].Description = cols[22];
+                                    fdrList[i].Adjusted_P = cols[7].ToString();
                                 }
                             }
                         }

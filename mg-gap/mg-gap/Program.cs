@@ -18,9 +18,9 @@ namespace v1_gap
         {
             //set up the filepath - in this version it's hard-coded
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
-            vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
+            //vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
             string qtlpath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
-            qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
+            //qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
@@ -65,7 +65,7 @@ namespace v1_gap
             //after this then find the median out of the output file and then run the b processing at that window and then b* processing - then move to java program
             //check if we recognize that the file has now been put there
             string splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
-            splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt"; //private mac env
+            //splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt"; //private mac env
 
 
             double median = 0.0;
@@ -142,19 +142,23 @@ namespace v1_gap
                 //Start the FDR process
                 Console.WriteLine("What FDR would you like to run against annotation? (Enter as actual decimal)");
                 double fdr_input = 0.00;
-                double.TryParse(Console.ReadLine(), out fdr_input);
+                //override  for unattended
+                //double.TryParse(Console.ReadLine(), out fdr_input);
                 Console.WriteLine("Running FDR analysis at " + fdr_input);
-                mg_gap.FDR.Process(snpList, fdr_input);
+                //override
+                mg_gap.FDR.Process(snpList, 0.05);
+                //mg_gap.FDR.Process(snpList, fdr_input);
 
                 //start getting the annotations
                 Console.WriteLine("FDR Analysis complete, gathering annotations...");
-                using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_FDR" + fdr_input + "_SCvsT_annotated" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
+                List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(snpList, qtlpath);
+                using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_FDR5" + "_SCvsT_annotated" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
                 {
                     finalfile.WriteLine("CHR\tBP\tB\tBs\tPraw\tFDR\tPadj\tDescription");
-                    foreach (mg_gap.SNP snp in mg_gap.Annotator.AnnotatedList(snpList, qtlpath))
+                    foreach (mg_gap.SNP snp in annotatedlist)
                     {
-                        finalfile.WriteLine(snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard + '\t' +
-                            snp.B_star + '\t' + snp.Raw_p + '\t' + snp.FDR + '\t' + snp.Adjusted_P + '\t' + snp.Description);
+                        finalfile.WriteLine(snp.Chromosome.ToString() + '\t' + snp.Basepair.ToString() + '\t' + snp.B_standard.ToString() + '\t' +
+                            snp.B_star.ToString() + '\t' + snp.Raw_p.ToString() + '\t' + snp.FDR.ToString() + '\t' + snp.Adjusted_P.ToString() + '\t' + snp.Description.ToString());
                     }
                 }
             }
