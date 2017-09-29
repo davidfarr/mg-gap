@@ -11,6 +11,7 @@ namespace mg_gap
     {
         public static List<SNP> AnnotatedList (List<SNP> fdrList, string csvpath)
         {
+            double progress = 0;
             using (var fileStream = File.OpenRead(csvpath))
             using (var streamReader = new StreamReader(fileStream))
             {
@@ -18,19 +19,24 @@ namespace mg_gap
                 while ((line = streamReader.ReadLine())!= null)
                 {
                     string[] cols = line.Replace("\n", "").Split(','); //true CSV file
-                    string chrom = cols[19].ToString();
-                    chrom = chrom.Remove(0, chrom.IndexOf("_") + 1);
-                    foreach (SNP snp in fdrList)
+                    if (cols[7].ToString() != "padj")
                     {
-                        if (snp.Chromosome.ToString() == chrom)
+                        string chrom = cols[19].ToString();
+                        chrom = chrom.Remove(0, chrom.IndexOf("_") + 1);
+                        for (int i = 0; i < fdrList.Count(); i++)
                         {
-                            if (Convert.ToInt32(cols[20]) <  snp.Basepair && snp.Basepair > Convert.ToDouble(cols[21]))
+                            if (fdrList[i].Chromosome.ToString() == chrom)
                             {
-                                snp.Description = cols[31];
-                                snp.Adjusted_P = Convert.ToDouble(cols[7]);
+                                if (Convert.ToInt32(cols[20]) < fdrList[i].Basepair && fdrList[i].Basepair > Convert.ToDouble(cols[21]))
+                                {
+                                    fdrList[i].Description = cols[31];
+                                    fdrList[i].Adjusted_P = double.Parse(cols[7].ToString(), System.Globalization.NumberStyles.Float);
+                                    progress++;
+                                }
                             }
                         }
                     }
+                    Console.Write("\r{0} of {1} Annotated.\t", (progress/fdrList.Count()),fdrList.Count());
                 }
             }
 

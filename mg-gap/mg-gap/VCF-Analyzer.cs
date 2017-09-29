@@ -17,12 +17,13 @@ namespace mg_gap
             List<SNP> snp_list_raw = new List<SNP>(); //stores all SNPs and all their info in the analysis
 
             string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
-            //in1 = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
+            in1 = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
             //these may be user defined
             int min_reads = 20;
             List<string> LineID = new List<string>(); //may not do anything useful
             List<string> Locations = new List<string>();
             List<double> ranked_z = new List<double>();
+            List<double> b_std = new List<double>();
 
             //temporary
             List<string> bs_list = new List<string>();
@@ -34,6 +35,7 @@ namespace mg_gap
             int skipcounter = 0;
             int diverge_0 = 0;
             int num_snp_lines = 0; //this should be a total of all the SNP's in the file
+            double bs_0 = 0;
 
             //evaluate contents of each line of input file
             using (var fileStream = File.OpenRead(vcfpath))
@@ -227,7 +229,6 @@ namespace mg_gap
                                             snp_inprogress.Transformed_t_variance = t_T_pop;
                                             snp_inprogress.Old_identifier = cols[0];
                                             snp_list_raw.Add(snp_inprogress);
-
                                         }
                                         else
                                         {
@@ -284,13 +285,15 @@ namespace mg_gap
                 //double b = Math.Pow(Convert.ToDouble(snp_list_raw[k].Divergence), 2) / vdiv;
 
                 snp_list_raw[k].B_standard = b;
+                b_std.Add(b);
             }
 
             //#####
             //all below goes to b*
+            List<SNP> trimmed_snps = new List<SNP>();
+
             if (bs_go == 'Y')
             {
-                Console.WriteLine("Calculating B* for " + snp_list_raw.Count + " SNPs.");
 
                 //set things up from the chisq file
                 Console.WriteLine("Assembling chi square apparatus...");
@@ -302,7 +305,7 @@ namespace mg_gap
                     percentiles[i] = new ArrayList();
                 }
                 int line_idx = 0;
-                foreach (string line in File.ReadLines(in1)) //this is the chisq file
+                foreach (string line in File.ReadLines(in1))
                 {
                     string[] cols = line.Replace("\n", "").Split('\t');
                     df.Add(float.Parse(cols[0]));
@@ -317,33 +320,30 @@ namespace mg_gap
                     line_idx++;
                     //Console.WriteLine("chisq enumeration: added DF " + cols[0] + " and RX " + rx); //adds DF from 0.1 to 10 with different RX per df
                 }
-                //List<double> braw = new List<double>();
-                //List<string> bloc = new List<string>();
-                //List<SNP> bloc = new List<SNP>();
+                List<double> braw = new List<double>();
+                List<string> bloc = new List<string>();
                 List<double> b_sorted = new List<double>();
-                for (int k = window; k < num_snps; k++)
+                for (int k = window; k < snp_list_raw.Count-1; k++)
                 {
                     if (k % window == 0 || k % window == window / 2) //is end of window?
                     {
                         double b = 0.0;
                         for (int j = 0; j < window; j++)
                         {
-                            b += Math.Pow(snp_list_raw[k - j].B_standard, 2);
+                            b += Math.Pow(b_std[k - j], 2);
                         }
-                        //bloc.Add(Locations[k]);
-                        //bloc.Add(snp_list_raw[k]);
-                        //braw.Add(b);
-                        snp_list_raw[k].B_standard = b;
+                        bloc.Add(Locations[k]);
+                        braw.Add(b);
                         b_sorted.Add(b);
                     }
                 }
 
-                //b_sorted.Sort();
+                b_sorted.Sort();
 
-                ////redo percentiles?
-                //n25 = b_sorted[snp_list_raw.Count / 4];
-                //n50 = b_sorted[snp_list_raw.Count / 2];
-                //n75 = b_sorted[3 * snp_list_raw.Count / 4];
+                //redo percentiles?
+                n25 = b_sorted[braw.Count / 4];
+                n50 = b_sorted[braw.Count / 2];
+                n75 = b_sorted[3 * braw.Count / 4];
 
                 double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
                 Console.WriteLine("B Bowley skew " + b_skew);
@@ -371,15 +371,9 @@ namespace mg_gap
                 double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
 
                 double p = 0.0;
-                for (int j = 0; j < b_sorted.Count; j++)
+                for (int j = 0; j < b_sorted.Count(); j++)
                 {
-                    double total = Convert.ToDouble(b_sorted.Count());
-                    double progress = j / total;
-                    progress = Math.Round(progress, 2);
-                    progress = progress * 100;
-                    Console.Write("\r" + progress + "% Complete.");
-                    //double bx = braw[j];
-                    double bx = snp_list_raw[j].B_standard;
+                    double bx = braw[j];
                     double b_star = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
                     if (b_star < Convert.ToDouble(percentiles[jstar][3]))
                     {
@@ -402,45 +396,31 @@ namespace mg_gap
                             }
                         }
                     }
-                    snp_list_raw[j].B_star = b_star;
-                    snp_list_raw[j].B_standard = bx;
-                    snp_list_raw[j].Raw_p = p;
-                    //string midpoint = string.Empty;
-                    //if (j > 0)
-                    //{
-                    //    midpoint = bloc[j - 1].ToString();
-                    //}
-                    //else
-                    //{
-                    //    midpoint = bloc[j].ToString();
-                    //}
-
-                    //SNP searchsnp = (from x in snp_list_raw where (x.Old_identifier + "_" + x.Basepair) == midpoint select x).First();
-                    //SNP searchsnp = snp_list_raw.Find(x => (x.Old_identifier + "_" + x.Basepair) == midpoint);
-                    //searchsnp.B_star = b_star;
-                    //searchsnp.B_standard = bx;
-                    //searchsnp.Raw_p = p;
-
                     
-
-
-
-                    //bs_list.Add(midpoint + '\t' + bx.ToString() + '\t' + b_star.ToString() + '\t' + p.ToString());
+                    snp_list_raw[j].Raw_p = p;
+                    snp_list_raw[j].B_star = b_star;
+                    
+                }
+                
+                for (int i = 0; i < braw.Count();i++)
+                {
+                    trimmed_snps.Add(snp_list_raw[i]);
                 }
             }
 
 
 
             //build the b list
-            Console.WriteLine("Building the B list...");
-            Console.WriteLine("B* available for " + bs_list.Count() + " of " + snp_list_raw.Count + " SNPs.");
+            Console.WriteLine("\nBuilding the B list...");
+            //Console.WriteLine("B* available for " + bs_list.Count() + " of " + snp_list_raw.Count + " SNPs.");
             
 
 
             Console.WriteLine("Analysis complete...");
 
             //if this is the version of the run where we want to get B*...
-            return snp_list_raw;
+            //return snp_list_raw;
+            return trimmed_snps;
         }
     }
 }

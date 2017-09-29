@@ -17,18 +17,19 @@ namespace mg_gap
         public static void Process (List<SNP> bs_list, double fdr_selected)
         {
             bs_list.OrderBy(x => x.Raw_p);
-            foreach (SNP snp in bs_list)
+            int bscapacity = bs_list.Count();
+
+            for (int i = 0;i < bs_list.Count();i++)
             {
-                snp.FDR = fdr_selected * bs_list.IndexOf(snp) / (bs_list.Count / 2);
-                //get the significant b. the sig b is the last snp where the p val < FDR
-                if (snp.Raw_p > snp.FDR)
-                {
-                    bs_list.Remove(snp); //did not make FDR cutoff
-                }
+                bs_list[i].FDR = fdr_selected * (i + 1) / (bscapacity / 2);
+                Console.Write("\r{0}% Complete.",Math.Round((Convert.ToDouble(i)/bs_list.Count())*100,1));
             }
+
+            Console.WriteLine("\n{0} SNPs removed below FDR threshold leaving {1}", bs_list.RemoveAll(x => x.Raw_p > x.FDR),bs_list.Count());
+            //Console.WriteLine("\n{0} SNPs removed where raw P > 0.05.", bs_list.RemoveAll(x => x.Raw_p > 0.05));
+
             //now show the sig b*
-            int lastsnp = bs_list.Count();
-            Console.WriteLine("Significant B* = " + bs_list[lastsnp].B_star);
+            Console.WriteLine("\nSignificant B* = {0}", bs_list.Last().B_star);
         }
     }
 }
