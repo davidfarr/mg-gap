@@ -23,6 +23,7 @@ namespace mg_gap
         private double transformed_t_variance = 0.0;
         private double fdr = 0.0;
         private string gene = string.Empty;
+        private int originalindex = 0;
 
         public int Basepair { get { return basepair; } set { basepair = value; } }
         public int Chromosome { get { return chromosome; } set { chromosome = value; } }
@@ -38,6 +39,7 @@ namespace mg_gap
         public double FDR { get { return fdr; } set { fdr = value; } }
         public string Description { get { return description; } set { description = value; } }
         public string Gene { get { return gene; } set { gene = value; } }
+        public int Original_index { get { return originalindex; } set { originalindex = value; } }
 
     }
 }

@@ -13,7 +13,7 @@ namespace mg_gap
         public static List<string> b_processing(int window, string vcfpath, char bs_go) //this is set up for SC vs T
         {
             string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
-			in1 = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
+			//in1 = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
             List<string> bList = new List<string>(); //out2
             //these may be user defined
             int min_reads = 20;
