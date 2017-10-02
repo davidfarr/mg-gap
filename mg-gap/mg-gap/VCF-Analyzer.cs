@@ -17,7 +17,7 @@ namespace mg_gap
             List<SNP> snp_list_raw = new List<SNP>(); //stores all SNPs and all their info in the analysis
 
             string in1 = (@"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/chisq.txt");
-            //in1 = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
+            in1 = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt"; //for mac environment only
             //these may be user defined
             int min_reads = 20;
             List<string> LineID = new List<string>(); //may not do anything useful

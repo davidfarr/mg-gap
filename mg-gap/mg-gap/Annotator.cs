@@ -30,12 +30,13 @@ namespace mg_gap
                                 if (Convert.ToInt32(cols[20]) < fdrList[i].Basepair && fdrList[i].Basepair > Convert.ToDouble(cols[21]))
                                 {
                                     fdrList[i].Description = cols[22];
-                                    fdrList[i].Adjusted_P = cols[7].ToString();
+                                    fdrList[i].Adjusted_P = cols[7];
+                                    fdrList[i].Gene = cols[1];
+                                    Console.Write("\r{0} of {1} Annotated.\t", (progress / fdrList.Count()), fdrList.Count());
                                 }
                             }
                         }
                     }
-                    Console.Write("\r{0} of {1} Annotated.\t", (progress/fdrList.Count()),fdrList.Count());
                 }
             }
 
