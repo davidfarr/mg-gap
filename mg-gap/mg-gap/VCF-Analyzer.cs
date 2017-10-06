@@ -26,6 +26,7 @@ namespace mg_gap
             // values
             int minimum_reads = 20;
             double Var_snp_specific = 0.0;
+            int num_snps = 0; //keep log of all the snps not just the accepted
 
             //evaluate each line of the file
             using (var fs = File.OpenRead(vcfpath))
@@ -73,10 +74,12 @@ namespace mg_gap
                                     double T_count = 0;
                                     List<double> T_dat = new List<double>();
 
-                                    for (int i = 10; i < cols.Length; i++) //skipping 767, so CA starts at 9
+                                    //for (int i = 10; i < cols.Length; i++) //skip 767 which is col 10
+                                    for (int i = 9;i< cols.Length;i++)//for ali.vcf
                                     {
                                         string[] info = cols[i].Split(':'); //split the info column that has AD on col[1]
-                                        if (info.Length == 5 && i < 13)
+                                        //if (info.Length == 5 && i < 13)//ali_w_767.vcf
+                                        if (info.Length == 5 && i < 12)//ali.vcf
                                         {
                                             string[] AD = info[1].Split(',');
                                             if (Convert.ToInt32(AD[0]) + Convert.ToInt32(AD[1]) > 0)
@@ -86,7 +89,8 @@ namespace mg_gap
                                                 C_dat.Add(Convert.ToInt32(AD[1]));
                                             }
                                         }
-                                        else if (info.Length == 5 && i > 12)
+                                        //else if (info.Length == 5 && i > 12)//ali_w_767.vcf
+                                        else if (info.Length == 5 && i > 11)//ali.vcf
                                         {
                                             string[] ad = info[1].Split(',');
                                             if (Convert.ToInt32(ad[0]) + Convert.ToInt32(ad[1]) > 0)
@@ -124,6 +128,7 @@ namespace mg_gap
                                             double qT_hat = qT_0 / qT_1;
                                             if (qC_hat != qT_hat)
                                             {
+                                                num_snps++;
                                                 double var_C = 1.0 / qC_1; //transformed variance of C
                                                 double var_T = 1.0 / qT_1; //for T
                                                 Var_snp_specific += (var_C + var_T);
@@ -148,12 +153,14 @@ namespace mg_gap
                                                 //we have the data we need, create a snp and add to the output list
                                                 SNP acceptedsnp = new SNP();
                                                 acceptedsnp.Chromosome = Convert.ToInt16(chromosome);
+                                                acceptedsnp.Basepair = position;
                                                 acceptedsnp.C_variance = var_C;
                                                 acceptedsnp.T_variance = var_T;
                                                 acceptedsnp.Transformed_c_variance = t_C_pop;
                                                 acceptedsnp.Transformed_t_variance = t_T_pop;
                                                 acceptedsnp.Old_identifier = cols[0];
                                                 output_snps.Add(acceptedsnp);
+                                                //old/new output the same up until here at least
                                             }
                                             else { skip_counter++; }
                                         }
@@ -171,24 +178,28 @@ namespace mg_gap
             Console.WriteLine("SNP processing complete, starting analysis...");
             Console.WriteLine("Skipped " + skip_counter + " SNPs");
             Console.WriteLine("Accepted " + output_snps.Count + " SNPs");
-            Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDouble(output_snps.Count)));
+            Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDouble(num_snps)));
 
             //sort Z list (only the one actually for ranking)
             zranked.Sort();
-            var n25 = zranked[output_snps.Count / 4];
-            var n50 = zranked[output_snps.Count / 2];
-            var n75 = zranked[3 * output_snps.Count / 4];
+            var n25 = zranked[num_snps / 4];
+            var n50 = zranked[num_snps / 2];
+            var n75 = zranked[3 * num_snps / 4];
 
             //report
             Console.WriteLine("Z percentiles (without direction) " + n25 + " " + n50 + " " + n75);
             Console.WriteLine("Total variance in Z (based on IQR) " + Math.Pow((n75 - n25 / 1.349), 2));
-            double Var_neutral = (Math.Pow(((n75 - n25) / 1.349), 2)) - Var_snp_specific / output_snps.Count;
+            double Var_neutral = (Math.Pow(((n75 - n25) / 1.349), 2)) - Var_snp_specific / num_snps;
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
             for (int i = 0; i < output_snps.Count; i++)
             {
                 double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance;
                 double b = Math.Pow(Convert.ToDouble(zraw[i]), 2) / vdiv;
                 output_snps[i].B_standard = b;
+                if ((output_snps[i].Old_identifier + "_" + output_snps[i].Basepair) == "sNNffold_1_7890684")
+                {
+                    Console.WriteLine(output_snps[i].Old_identifier + "_" + output_snps[i].Basepair + '\t' + b.ToString());
+                }
             }
 
             //end unless it's a go for doing b*
@@ -223,7 +234,7 @@ namespace mg_gap
                 //set up a list for ranking again
                 List<double> b_sorted = new List<double>();
                 List<double> braw = new List<double>();
-                for (int i = window; i < output_snps.Count; i++)
+                for (int i = window; i < num_snps; i++)
                 {
                     if (i % window == 0 || i % window == window / 2)
                     {

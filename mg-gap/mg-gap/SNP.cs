@@ -24,6 +24,7 @@ namespace mg_gap
         private double fdr = 0.0;
         private string gene = string.Empty;
         private int originalindex = 0;
+        private string rnaseqp = string.Empty;
 
         public int Basepair { get { return basepair; } set { basepair = value; } }
         public int Chromosome { get { return chromosome; } set { chromosome = value; } }
@@ -40,6 +41,6 @@ namespace mg_gap
         public string Description { get { return description; } set { description = value; } }
         public string Gene { get { return gene; } set { gene = value; } }
         public int Original_index { get { return originalindex; } set { originalindex = value; } }
-
+        public string RnaSeqPval {  get { return rnaseqp; } set { rnaseqp = value; } }
     }
 }

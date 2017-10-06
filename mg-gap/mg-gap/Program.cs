@@ -18,6 +18,7 @@ namespace v1_gap
         {
             //set up the filepath - in this version it's hard-coded
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
+            vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali.vcf";
             //vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
             string qtlpath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
             //qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
@@ -30,15 +31,15 @@ namespace v1_gap
 
 
             //new way for R work prep
-            using (StreamWriter write_results = File.CreateText("B1_new.txt"))
-            {
-                write_results.WriteLine("CHR\tBP\tB");
+            //using (StreamWriter write_results = File.CreateText("B1_new.txt"))
+            //{
+            //    write_results.WriteLine("CHR\tBP\tB");
 
-                foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(1, vcf_path, 'N',chisq_path))
-                {
-                    write_results.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
-                }
-            }
+            //    foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(1, vcf_path, 'N',chisq_path))
+            //    {
+            //        write_results.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
+            //    }
+            //}
 
 
             methodTime.Stop();
@@ -125,6 +126,21 @@ namespace v1_gap
             //need to hold on to the data for FDR though
             if (median > 0)
             {
+                //test old way
+                //List<string> oldlist = mg_gap.VcfParser.b_processing(Convert.ToInt32(median), vcf_path, 'Y');
+                //using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_oldversion_" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
+                //{
+                //    finalfile.WriteLine("Oldname\tB\tB*\tP");
+                //    for (int i = 0; i < oldlist.Count; i++)
+                //    {
+                //        finalfile.WriteLine(oldlist[i].ToString());
+                //    }
+                //}
+
+
+
+
+
                 List<mg_gap.SNP> snpList = mg_gap.VCF_Analyzer.SNP_list(Convert.ToInt32(median), vcf_path, 'Y', chisq_path);
                 Console.WriteLine("Re-analyzing for B* based on median window size " + median + " @ " + DateTime.Now);
 
@@ -143,11 +159,11 @@ namespace v1_gap
                 List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(snpList, qtlpath);
                 using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_FDR5" + "_SCvsT_annotated" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
                 {
-                    finalfile.WriteLine("CHR\tBP\tB\tBs\tPraw\tPadj\tFDR\tDescription\tGene");
+                    finalfile.WriteLine("CHR\tBP\tB\tBs\tPraw\tRnaSeqP\tRnaSeqPadj\tFDR\tDescription\tGene");
                     foreach (mg_gap.SNP snp in annotatedlist)
                     {
                         finalfile.WriteLine(snp.Chromosome.ToString() + '\t' + snp.Basepair.ToString() + '\t' + snp.B_standard.ToString() + '\t' +
-                            snp.B_star.ToString() + '\t' + snp.Raw_p.ToString() + '\t' + snp.Adjusted_P.ToString() + '\t' + snp.FDR.ToString() + '\t' + snp.Description.ToString() + '\t' + snp.Gene.ToString());
+                            snp.B_star.ToString() + '\t' + snp.Raw_p.ToString() + '\t' + snp.RnaSeqPval.ToString() + '\t' + snp.Adjusted_P.ToString() + '\t' + snp.FDR.ToString() + '\t' + snp.Description.ToString() + '\t' + snp.Gene.ToString());
                     }
                 }
             }

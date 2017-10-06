@@ -293,6 +293,7 @@ namespace mg_gap
                 double b = Math.Pow(Convert.ToDouble(zraw[k]), 2) / vdiv;
                 b_std.Add(b);
                 bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\n'); //traditional way
+                Console.WriteLine(parsedarray[0].ToString() + '\t' + b.ToString());
                 //bList.Add(parsedarray[0].ToString() + '\t' + b.ToString() + '\t' + vdiv + '\t' + parsedarray[3].ToString() + '\t' + parsedarray[4].ToString()); //verbose output
             }
 

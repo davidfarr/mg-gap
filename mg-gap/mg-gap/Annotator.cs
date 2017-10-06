@@ -11,7 +11,7 @@ namespace mg_gap
     {
         public static List<SNP> AnnotatedList (List<SNP> fdrList, string csvpath)
         {
-            double progress = 0;
+            int progress = 0;
             using (var fileStream = File.OpenRead(csvpath))
             using (var streamReader = new StreamReader(fileStream))
             {
@@ -30,9 +30,11 @@ namespace mg_gap
                                 if (Convert.ToInt32(cols[20]) < fdrList[i].Basepair && fdrList[i].Basepair > Convert.ToDouble(cols[21]))
                                 {
                                     fdrList[i].Description = cols[22];
+                                    fdrList[i].RnaSeqPval = cols[6];
                                     fdrList[i].Adjusted_P = cols[7];
                                     fdrList[i].Gene = cols[1];
-                                    Console.Write("\r{0} of {1} Annotated.\t", (progress / fdrList.Count()), fdrList.Count());
+                                    progress++;
+                                    Console.Write("\r{0} of {1} Annotated.\t", progress, fdrList.Count());
                                 }
                             }
                         }
