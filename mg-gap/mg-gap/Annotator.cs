@@ -11,37 +11,34 @@ namespace mg_gap
     {
         public static List<SNP> AnnotatedList (List<SNP> fdrList, string csvpath)
         {
-            int progress = 0;
-            using (var fileStream = File.OpenRead(csvpath))
-            using (var streamReader = new StreamReader(fileStream))
+            for (int i = 0; i< fdrList.Count();i++)
             {
-                String line;
-                while ((line = streamReader.ReadLine())!= null)
+                using (var fileStream = File.OpenRead(csvpath))
+                using (var streamReader = new StreamReader(fileStream))
                 {
-                    string[] cols = line.Replace("\n", "").Split(','); //true CSV file
-                    if (cols[7].ToString() != "padj")
+                    String line;
+                    while ((line = streamReader.ReadLine()) != null)
                     {
-                        string chrom = cols[19].ToString();
-                        chrom = chrom.Remove(0, chrom.IndexOf("_") + 1);
-                        for (int i = 0; i < fdrList.Count(); i++)
+                        string[] cols = line.Replace("\n", "").Split(','); //true CSV file
+                        if (cols[7].ToString() != "padj")
                         {
-                            if (fdrList[i].Chromosome.ToString() == chrom)
-                            {
-                                if (Convert.ToInt32(cols[20]) < fdrList[i].Basepair && fdrList[i].Basepair > Convert.ToDouble(cols[21]))
+                            string chrom = cols[19].ToString();
+                            chrom = chrom.Remove(0, chrom.IndexOf("_") + 1);
+                                if (fdrList[i].Chromosome.ToString() == chrom)
                                 {
-                                    fdrList[i].Description = cols[22];
-                                    fdrList[i].RnaSeqPval = cols[6];
-                                    fdrList[i].Adjusted_P = cols[7];
-                                    fdrList[i].Gene = cols[1];
-                                    progress++;
-                                    Console.Write("\r{0} of {1} Annotated.\t", progress, fdrList.Count());
+                                    if (Convert.ToInt32(cols[20]) < fdrList[i].Basepair && fdrList[i].Basepair > Convert.ToDouble(cols[21]))
+                                    {
+                                        fdrList[i].Description = cols[22];
+                                        fdrList[i].RnaSeqPval = cols[6];
+                                        fdrList[i].Adjusted_P = cols[7];
+                                        fdrList[i].Gene = cols[1];
+                                        Console.Write("\r{0} of {1} Annotated. ( {2} )\t", i, fdrList.Count(), (i/fdrList.Count())*100);
+                                    }
                                 }
-                            }
                         }
                     }
                 }
             }
-
                 return fdrList;
         }
     }

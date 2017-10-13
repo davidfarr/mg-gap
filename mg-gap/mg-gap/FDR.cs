@@ -26,20 +26,20 @@ namespace mg_gap
             }
 
             //get the sig b*
-            double sigb = 0.00;
-            for (int i = 0;i< bs_list.Count();i++)
-            {
-                if (bs_list[i].Raw_p > bs_list[i].B_star)
-                {
-                    sigb = bs_list[i].B_star;
-                }
-            }
+            //double sigb = 0.00;
+            //for (int i = 0;i< bs_list.Count();i++)
+            //{
+            //    if (bs_list[i].Raw_p > bs_list[i].B_star)
+            //    {
+            //        sigb = bs_list[i].B_star;
+            //    }
+            //}
             
 
-            Console.WriteLine("\n{0} SNPs removed below FDR threshold leaving {1}", bs_list.RemoveAll(x => x.Raw_p > sigb),bs_list.Count());
+            //Console.WriteLine("\n{0} SNPs removed below FDR threshold leaving {1}", bs_list.RemoveAll(x => x.Raw_p > sigb),bs_list.Count());
 
             //now show the sig b*
-            Console.WriteLine("\nSignificant B* = {0}\nSignificant B = {1}", bs_list.Last().B_star, bs_list.Last().B_standard);
+            //Console.WriteLine("\nSignificant B* = {0}\nSignificant B = {1}", bs_list.Last().B_star, bs_list.Last().B_standard);
         }
     }
 }
