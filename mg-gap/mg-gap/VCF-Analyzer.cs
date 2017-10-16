@@ -18,6 +18,8 @@ namespace mg_gap
             List<double> zranked = new List<double>(); //this will be just for reporting initial stats
             int skip_counter = 0; //to keep track of how many SNPs are skipped
             int total_counter = 0; //keep track of how many SNPs there are total
+            List<Int32> bloc = new List<Int32>(); //test replacement for braw/bsorted/trimmed list. the CHR/BP doesn't match otherwise
+
 
             //output list
             List<SNP> output_snps = new List<SNP>();
@@ -74,12 +76,12 @@ namespace mg_gap
                                     double T_count = 0;
                                     List<double> T_dat = new List<double>();
 
-                                    //for (int i = 10; i < cols.Length; i++) //skip 767 which is col 10
-                                    for (int i = 9;i< cols.Length;i++)//for ali.vcf
+                                    for (int i = 10; i < cols.Length; i++) //skip 767 which is col 10
+                                    //for (int i = 9;i< cols.Length;i++)//for ali.vcf
                                     {
                                         string[] info = cols[i].Split(':'); //split the info column that has AD on col[1]
-                                        //if (info.Length == 5 && i < 13)//ali_w_767.vcf
-                                        if (info.Length == 5 && i < 12)//ali.vcf
+                                        if (info.Length == 5 && i < 13)//ali_w_767.vcf
+                                        //if (info.Length == 5 && i < 12)//ali.vcf
                                         {
                                             string[] AD = info[1].Split(',');
                                             if (Convert.ToInt32(AD[0]) + Convert.ToInt32(AD[1]) > 0)
@@ -89,8 +91,8 @@ namespace mg_gap
                                                 C_dat.Add(Convert.ToInt32(AD[1]));
                                             }
                                         }
-                                        //else if (info.Length == 5 && i > 12)//ali_w_767.vcf
-                                        else if (info.Length == 5 && i > 11)//ali.vcf
+                                        else if (info.Length == 5 && i > 12)//ali_w_767.vcf
+                                        //else if (info.Length == 5 && i >= 12)//ali.vcf
                                         {
                                             string[] ad = info[1].Split(',');
                                             if (Convert.ToInt32(ad[0]) + Convert.ToInt32(ad[1]) > 0)
@@ -115,6 +117,7 @@ namespace mg_gap
                                             qC_0 += C_dat[2 * i]; //ref base
                                             qC_1 += m; //ref + alt base
                                         }
+
                                         for (int i = 0; i < T_dat.Count / 2; i++)
                                         {
                                             double m = T_dat[2 * i] + T_dat[2 * i + 1];
@@ -160,7 +163,6 @@ namespace mg_gap
                                                 acceptedsnp.Transformed_t_variance = t_T_pop;
                                                 acceptedsnp.Old_identifier = cols[0];
                                                 output_snps.Add(acceptedsnp);
-                                                //old/new output the same up until here at least
                                             }
                                             else { skip_counter++; }
                                         }
@@ -193,13 +195,9 @@ namespace mg_gap
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
             for (int i = 0; i < zraw.Count; i++)
             {
-                double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance;
+                double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
                 double b = Math.Pow(Convert.ToDouble(zraw[i]), 2) / vdiv;
                 output_snps[i].B_standard = b;
-                if ((output_snps[i].Old_identifier + "_" + output_snps[i].Basepair) == "sNNffold_1_15730")
-                {
-                    Console.WriteLine(output_snps[i].Old_identifier + "_" + output_snps[i].Basepair + '\t' + b.ToString());
-                }
             }
 
             //end unless it's a go for doing b*
@@ -234,6 +232,7 @@ namespace mg_gap
                 //set up a list for ranking again
                 List<double> b_sorted = new List<double>();
                 List<double> braw = new List<double>();
+                //bs_list.OrderBy(x => x.Raw_p);
                 for (int i = window; i < num_snps; i++)
                 {
                     if (i % window == 0 || i % window == window / 2)
@@ -245,6 +244,7 @@ namespace mg_gap
                         }
                         braw.Add(b);
                         b_sorted.Add(b);
+                        bloc.Add(i);
                     }
                 }
                 b_sorted.Sort();
@@ -253,6 +253,7 @@ namespace mg_gap
                 n25 = b_sorted[braw.Count / 4];
                 n50 = b_sorted[braw.Count / 2];
                 n75 = b_sorted[3 * braw.Count / 4];
+
 
                 double bowley_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
                 Console.WriteLine("B Bowley skew " + bowley_skew);
@@ -305,21 +306,25 @@ namespace mg_gap
                             }
                         }
                     }
-                    output_snps[j].Raw_p = p;
-                    output_snps[j].B_star = b_star;
+                    if (j > 0)
+                    {
+                        output_snps[bloc[j - 1]].Raw_p = p;
+                        output_snps[bloc[j - 1]].B_star = b_star;
+                        output_snps[bloc[j - 1]].B_standard = bx;
+                    }
+                    else
+                    {
+                        output_snps[bloc[j]].Raw_p = p;
+                        output_snps[bloc[j]].B_star = b_star;
+                        output_snps[bloc[j]].B_standard = bx;
+                    }
+
                 }
-                for (int i = 0; i < braw.Count(); i++)
-                {
-                    trimmed_snps.Add(output_snps[i]);
-                }
+                //remove all where there is no b_star
+                output_snps.RemoveAll(x => !(x.B_star > 0));
             }
 
-            switch (bs_go)
-            {
-                case 'Y': return trimmed_snps;
-                case 'N': return output_snps;
-                default: return output_snps;
-            }
+            return output_snps;
         }
     }
 }
