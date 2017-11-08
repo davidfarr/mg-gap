@@ -32,7 +32,6 @@ namespace mg_gap
                                     fdrList[i].RnaSeqPval = cols[6];
                                     fdrList[i].Adjusted_P = cols[7];
                                     fdrList[i].Gene = cols[1];
-                                    Console.Write("\r{0}%  Annotated.\t", (i / fdrList.Count()) * 100);
                                 }
                             }
                         }
