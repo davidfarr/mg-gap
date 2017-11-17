@@ -23,6 +23,7 @@ namespace v1_gap
             string qtlpath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
             //qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
             string chisq_path = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
+            //chisq_path = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
@@ -67,7 +68,7 @@ namespace v1_gap
             //after this then find the median out of the output file and then run the b processing at that window and then b* processing - then move to java program
             //check if we recognize that the file has now been put there
             string splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
-            //splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt"; //private mac env
+            splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt"; //private mac env
 
 
             double median = 0.0;
@@ -159,11 +160,11 @@ namespace v1_gap
                 List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(snpList, qtlpath);
                 using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_FDR5" + "_SCvsT_annotated" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
                 {
-                    finalfile.WriteLine("CHR\tBP\tB\tBs\tPraw\tRnaSeqP\tRnaSeqPadj\tFDR\tDescription\tGene");
+                    finalfile.WriteLine("CHR\tBP\tB\tBs\tPraw\tRnaSeqP\tRnaSeqPadj\tFDR_ThresholdValue\tDescription\tGene");
                     foreach (mg_gap.SNP snp in annotatedlist)
                     {
                         finalfile.WriteLine(snp.Chromosome.ToString() + '\t' + snp.Basepair.ToString() + '\t' + snp.B_standard.ToString() + '\t' +
-                            snp.B_star.ToString() + '\t' + snp.Raw_p.ToString() + '\t' + snp.RnaSeqPval.ToString() + '\t' + snp.Adjusted_P.ToString() + '\t' + snp.FDR.ToString() + '\t' + snp.Description.ToString() + '\t' + snp.Gene.ToString());
+                            snp.B_star.ToString() + '\t' + snp.Raw_p.ToString() + '\t' + snp.RnaSeqPval.ToString() + '\t' + snp.Adjusted_P.ToString() + '\t' + snp.Threshold_Value.ToString() + '\t' + snp.Description.ToString() + '\t' + snp.Gene.ToString());
                     }
                 }
             }

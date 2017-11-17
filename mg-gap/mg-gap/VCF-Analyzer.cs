@@ -13,7 +13,7 @@ namespace mg_gap
 
         public static List<SNP> SNP_list(int window, string vcfpath, char bs_go, string chisq_path)
         {
-            //arrays
+            //arrays to use
             List<double> zraw = new List<double>(); //this holds Z scores from divergence
             List<double> zranked = new List<double>(); //this will be just for reporting initial stats
             int skip_counter = 0; //to keep track of how many SNPs are skipped
@@ -29,6 +29,7 @@ namespace mg_gap
             int minimum_reads = 20;
             double Var_snp_specific = 0.0;
             int num_snps = 0; //keep log of all the snps not just the accepted
+            int diverge_0 = 0;
 
             //evaluate each line of the file
             using (var fs = File.OpenRead(vcfpath))
@@ -129,7 +130,7 @@ namespace mg_gap
                                         {
                                             double qC_hat = qC_0 / qC_1;
                                             double qT_hat = qT_0 / qT_1;
-                                            if (qC_hat != qT_hat)
+                                            if (qC_hat != 0 && qC_hat != 1 && qT_hat !=0 && qT_hat != 1)
                                             {
                                                 num_snps++;
                                                 double var_C = 1.0 / qC_1; //transformed variance of C
@@ -138,6 +139,10 @@ namespace mg_gap
 
                                                 //calculate divergence
                                                 double diverge = (2.0 * ((Math.Asin(Math.Pow(qT_hat, 0.5))) - (Math.Asin(Math.Pow(qC_hat, 0.5)))));
+                                                if (diverge == 0)
+                                                {
+                                                    diverge_0++;
+                                                }
                                                 Random rnd = new Random();
                                                 if (rnd.Next(1, 3) == 1)
                                                 {
@@ -189,6 +194,7 @@ namespace mg_gap
             var n75 = zranked[3 * num_snps / 4];
 
             //report
+            Console.WriteLine("{0} SNP's had equal (non 0 or 1) population frequencies and were accepted.",diverge_0);
             Console.WriteLine("Z percentiles (without direction) " + n25 + " " + n50 + " " + n75);
             Console.WriteLine("Total variance in Z (based on IQR) " + Math.Pow((n75 - n25 / 1.349), 2));
             double Var_neutral = (Math.Pow(((n75 - n25) / 1.349), 2)) - Var_snp_specific / num_snps;

@@ -21,7 +21,7 @@ namespace mg_gap
         private double t_variance = 0.00;
         private double transformed_c_variance = 0.0;
         private double transformed_t_variance = 0.0;
-        private double fdr = 0.0;
+        private double threshold_value = 0.0;
         private string gene = string.Empty;
         private int originalindex = 0;
         private string rnaseqp = string.Empty;
@@ -37,7 +37,7 @@ namespace mg_gap
         public double Transformed_c_variance { get { return transformed_c_variance; } set { transformed_c_variance = value; } }
         public double Transformed_t_variance { get { return transformed_t_variance; } set { transformed_t_variance = value; } }
         public string Old_identifier { get { return old_identifier; } set { old_identifier = value; } }
-        public double FDR { get { return fdr; } set { fdr = value; } }
+        public double Threshold_Value { get { return threshold_value; } set { threshold_value = value; } } //old way wasn't naming right
         public string Description { get { return description; } set { description = value; } }
         public string Gene { get { return gene; } set { gene = value; } }
         public int Original_index { get { return originalindex; } set { originalindex = value; } }
