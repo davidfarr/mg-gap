@@ -18,7 +18,7 @@ namespace v1_gap
         {
             //set up the filepath - in this version it's hard-coded
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
-            //vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali.vcf";
+            vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali.vcf";
             //vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
             string qtlpath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
             //qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
@@ -68,7 +68,7 @@ namespace v1_gap
             //after this then find the median out of the output file and then run the b processing at that window and then b* processing - then move to java program
             //check if we recognize that the file has now been put there
             string splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
-            splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt"; //private mac env
+            //splinepath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt"; //private mac env
 
 
             double median = 0.0;
@@ -152,12 +152,13 @@ namespace v1_gap
                 //double.TryParse(Console.ReadLine(), out fdr_input);
                 Console.WriteLine("Running FDR analysis at " + fdr_input);
                 //override
-                mg_gap.FDR.Process(snpList, 0.05);
+                List<mg_gap.SNP> fdrlist = mg_gap.FDR.Process(snpList, 0.05);
                 //mg_gap.FDR.Process(snpList, fdr_input);
 
                 //start getting the annotations
                 Console.WriteLine("\nFDR Analysis complete, gathering annotations...");
-                List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(snpList, qtlpath);
+                //List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(snpList, qtlpath);
+                List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(fdrlist, qtlpath);
                 using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_FDR5" + "_SCvsT_annotated" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
                 {
                     finalfile.WriteLine("CHR\tBP\tB\tBs\tPraw\tRnaSeqP\tRnaSeqPadj\tFDR_ThresholdValue\tDescription\tGene");
