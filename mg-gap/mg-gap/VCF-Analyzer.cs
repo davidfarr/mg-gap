@@ -13,7 +13,7 @@ namespace mg_gap
 
         public static List<SNP> SNP_list(int window, string vcfpath, char bs_go, string chisq_path)
         {
-            //arrays
+            //arrays to use
             List<double> zraw = new List<double>(); //this holds Z scores from divergence
             List<double> zranked = new List<double>(); //this will be just for reporting initial stats
             int skip_counter = 0; //to keep track of how many SNPs are skipped

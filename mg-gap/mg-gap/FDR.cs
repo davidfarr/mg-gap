@@ -28,7 +28,7 @@ namespace mg_gap
             Console.WriteLine("\n{0} SNPs removed below FDR threshold leaving {1}", bs_list.RemoveAll(x => x.Raw_p > x.Threshold_Value),bs_list.Count());
 
             //now show the sig b*
-            Console.WriteLine("\nSignificant B* = {0}\nSignificant B = {1}", bs_list.Last().B_star, bs_list.Last().B_standard);
+           // Console.WriteLine("\nSignificant B* = {0}\nSignificant B = {1}", bs_list.Last().B_star, bs_list.Last().B_standard);
         }
     }
 }

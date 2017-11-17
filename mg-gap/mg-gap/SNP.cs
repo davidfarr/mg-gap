@@ -37,7 +37,7 @@ namespace mg_gap
         public double Transformed_c_variance { get { return transformed_c_variance; } set { transformed_c_variance = value; } }
         public double Transformed_t_variance { get { return transformed_t_variance; } set { transformed_t_variance = value; } }
         public string Old_identifier { get { return old_identifier; } set { old_identifier = value; } }
-        public double Threshold_Value { get { return threshold_value; } set { threshold_value = value; } }
+        public double Threshold_Value { get { return threshold_value; } set { threshold_value = value; } } //old way wasn't naming right
         public string Description { get { return description; } set { description = value; } }
         public string Gene { get { return gene; } set { gene = value; } }
         public int Original_index { get { return originalindex; } set { originalindex = value; } }
