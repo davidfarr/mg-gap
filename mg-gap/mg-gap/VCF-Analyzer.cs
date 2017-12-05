@@ -77,12 +77,12 @@ namespace mg_gap
                                     double T_count = 0;
                                     List<double> T_dat = new List<double>();
 
-                                    //for (int i = 10; i < cols.Length; i++) //skip 767 which is col 10
-                                    for (int i = 9;i< cols.Length;i++)//for ali.vcf
+                                    for (int i = 10; i < cols.Length; i++) //skip 767 which is col 10
+                                    //for (int i = 9;i< cols.Length;i++)//for ali.vcf
                                     {
                                         string[] info = cols[i].Split(':'); //split the info column that has AD on col[1]
-                                        //if (info.Length == 5 && i < 13)//ali_w_767.vcf
-                                        if (info.Length == 5 && i < 12)//ali.vcf
+                                        if (info.Length == 5 && i < 13)//ali_w_767.vcf
+                                        //if (info.Length == 5 && i < 12)//ali.vcf
                                         {
                                             string[] AD = info[1].Split(',');
                                             if (Convert.ToInt32(AD[0]) + Convert.ToInt32(AD[1]) > 0)
@@ -92,8 +92,8 @@ namespace mg_gap
                                                 C_dat.Add(Convert.ToInt32(AD[1]));
                                             }
                                         }
-                                        //else if (info.Length == 5 && i > 12)//ali_w_767.vcf
-                                        else if (info.Length == 5 && i >= 12)//ali.vcf
+                                        else if (info.Length == 5 && i > 12)//ali_w_767.vcf
+                                        //else if (info.Length == 5 && i >= 12)//ali.vcf
                                         {
                                             string[] ad = info[1].Split(',');
                                             if (Convert.ToInt32(ad[0]) + Convert.ToInt32(ad[1]) > 0)
@@ -317,12 +317,47 @@ namespace mg_gap
                         output_snps[bloc[j - 1]].Raw_p = p;
                         output_snps[bloc[j - 1]].B_star = b_star;
                         output_snps[bloc[j - 1]].B_standard = bx;
+
+                        //spot check
+                        if (output_snps[bloc[j-1]].Chromosome ==1 && output_snps[bloc[j - 1]].Basepair == 4325177)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
+                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 5585167)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
+                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 12985544)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
+                        if (output_snps[bloc[j - 1]].Chromosome == 10 && output_snps[bloc[j - 1]].Basepair == 17736656)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
                     }
                     else
                     {
                         output_snps[bloc[j]].Raw_p = p;
                         output_snps[bloc[j]].B_star = b_star;
                         output_snps[bloc[j]].B_standard = bx;
+                        //spot check
+                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 4325177)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
+                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 5585167)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
+                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 12985544)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
+                        if (output_snps[bloc[j - 1]].Chromosome == 10 && output_snps[bloc[j - 1]].Basepair == 17736656)
+                        {
+                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
+                        }
                     }
 
                 }

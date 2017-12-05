@@ -16,7 +16,6 @@ namespace mg_gap
 
         public static List<SNP> Process (List<SNP> bs_list, double fdr_selected)
         {
-            //bs_list.OrderBy(x => x.Raw_p);
             List<SNP> sortedlist = bs_list.OrderBy(x => x.Raw_p).ToList();
 
             int rankassignment = 1;
@@ -31,16 +30,14 @@ namespace mg_gap
                 snp.Threshold_Value = (fdr_selected * snp.FDR_Rank) / numwindow;
             }
 
-            //int bscapacity = bs_list.Count();
+            int bscapacity = bs_list.Count();
 
-            //for (int i = 0;i < bs_list.Count();i++)
-            //{
-            //    bs_list[i].Threshold_Value = fdr_selected * (i + 1) / (bscapacity / 2);
-            //}
+            for (int i = 0; i < bs_list.Count(); i++)
+            {
+                bs_list[i].Threshold_Value = fdr_selected * (i + 1) / (bscapacity / 2);
+            }
 
             Console.WriteLine("\n{0} SNPs removed below FDR threshold leaving {1}", sortedlist.RemoveAll(x => x.Raw_p > x.Threshold_Value), sortedlist.Count());
-
-            //Console.WriteLine("\n{0} SNPs removed below FDR threshold leaving {1}", bs_list.RemoveAll(x => x.Raw_p >= x.Threshold_Value), bs_list.Count());
 
             //now show the sig b*
             //Console.WriteLine("\nSignificant B* = {0}\nSignificant B = {1}", bs_list.Min(x => x.B_star));

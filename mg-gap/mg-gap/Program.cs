@@ -18,7 +18,7 @@ namespace v1_gap
         {
             //set up the filepath - in this version it's hard-coded
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
-            vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali.vcf";
+            //vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali.vcf";
             //vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
             string qtlpath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
             //qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
@@ -153,11 +153,10 @@ namespace v1_gap
                 Console.WriteLine("Running FDR analysis at " + fdr_input);
                 //override
                 List<mg_gap.SNP> fdrlist = mg_gap.FDR.Process(snpList, 0.05);
-                //mg_gap.FDR.Process(snpList, fdr_input);
+                mg_gap.FDR.Process(snpList, fdr_input);
 
                 //start getting the annotations
                 Console.WriteLine("\nFDR Analysis complete, gathering annotations...");
-                //List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(snpList, qtlpath);
                 List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(fdrlist, qtlpath);
                 using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_FDR5" + "_SCvsT_annotated" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
                 {
