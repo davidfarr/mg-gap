@@ -142,7 +142,7 @@ namespace v1_gap
 
 
 
-                List<mg_gap.SNP> snpList = mg_gap.VCF_Analyzer.SNP_list(Convert.ToInt32(median), vcf_path, 'Y', chisq_path);
+                List<mg_gap.SNP> snpList = mg_gap.VCF_Analyzer.SNP_list(Convert.ToInt32(median), vcf_path, chisq_path);
                 Console.WriteLine("Re-analyzing for B* based on median window size " + median + " @ " + DateTime.Now);
 
                 //Start the FDR process

@@ -11,7 +11,7 @@ namespace mg_gap
     {
         //read the VCF... create a list of SNP's with their info in a method and return the "list" of SNPs back to the main program file
 
-        public static List<SNP> SNP_list(int window, string vcfpath, char bs_go, string chisq_path)
+        public static List<SNP> SNP_list(int window, string vcfpath, string chisq_path)
         {
             //arrays to use
             List<double> zraw = new List<double>(); //this holds Z scores from divergence
@@ -19,6 +19,7 @@ namespace mg_gap
             int skip_counter = 0; //to keep track of how many SNPs are skipped
             int total_counter = 0; //keep track of how many SNPs there are total
             List<Int32> bloc = new List<Int32>(); //test replacement for braw/bsorted/trimmed list. the CHR/BP doesn't match otherwise
+            List<double> z_std = new List<double>(); //for standardized divergence (distinct from zraw and zranked (which is just a sorted zraw)
 
 
             //output list
@@ -30,6 +31,32 @@ namespace mg_gap
             double Var_snp_specific = 0.0;
             int num_snps = 0; //keep log of all the snps not just the accepted
             int diverge_0 = 0;
+
+            //Set up Chisq file
+            //set things up from the chisq file
+            Console.WriteLine("Assembling chi square apparatus...");
+            List<double> df = new List<double>();
+            List<double> bs = new List<double>();
+            ArrayList[] percentiles = new ArrayList[100];
+            for (int i = 0; i < percentiles.Length; i++)
+            {
+                percentiles[i] = new ArrayList();
+            }
+            int line_idx = 0;
+            foreach (string line in File.ReadLines(chisq_path))
+            {
+                string[] cols = line.Replace("\n", "").Split('\t');
+                df.Add(float.Parse(cols[0]));
+                for (int j = 0; j < 9; j++)
+                {
+                    percentiles[line_idx].Add(float.Parse(cols[j + 1]));
+                }
+                double rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
+                          Convert.ToDouble(percentiles[line_idx][1])) /
+                    (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
+                bs.Add(rx);
+                line_idx++;
+            }
 
             //evaluate each line of the file
             using (var fs = File.OpenRead(vcfpath))
@@ -58,7 +85,7 @@ namespace mg_gap
                             string chromosome = cols[0].ToString();
                             chromosome = chromosome.Remove(0, chromosome.IndexOf("_") + 1);//safely remove the non-standard id before the actual #
 
-                            if (Convert.ToInt32(chromosome) < 15)//we are only using up to chr 14 for this data
+                            if (Convert.ToInt32(chromosome) < 2)//we are only using up to chr 14 for this data
                             {
                                 int position = Convert.ToInt32(cols[1]);//grab the base pair
                                 string ref_base = cols[3]; //the reference base allele
@@ -155,6 +182,8 @@ namespace mg_gap
                                                     zranked.Add(-diverge);
                                                 }
 
+                                                z_std.Add(diverge);
+
                                                 double t_C_pop = Math.Asin(Math.Sqrt(qC_hat)); //transformed variance for the C population
                                                 double t_T_pop = Math.Asin(Math.Sqrt(qT_hat)); //transformed variance for the T population
 
@@ -199,171 +228,119 @@ namespace mg_gap
             Console.WriteLine("Total variance in Z (based on IQR) " + Math.Pow((n75 - n25 / 1.349), 2));
             double Var_neutral = (Math.Pow(((n75 - n25) / 1.349), 2)) - Var_snp_specific / num_snps;
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
-            for (int i = 0; i < zraw.Count; i++)
+
+            //create a temporary copy of z_std for getting Zs percentiles
+            List<double> ranked_zs = new List<double>();
+
+            for (int i = 0; i<z_std.Count;i++)
             {
-                double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
-                double b = Math.Pow(Convert.ToDouble(zraw[i]), 2) / vdiv;
-                output_snps[i].B_standard = b;
+                double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance;
+                z_std[i] = z_std[i] / (Math.Pow(vdiv, 0.5));
+                ranked_zs.Add(z_std[i]);
             }
 
-            //end unless it's a go for doing b*
-            if (bs_go == 'Y')
+
+            ranked_zs.Sort();
+            n25 = ranked_zs[num_snps / 4];
+            n50 = ranked_zs[num_snps / 2];
+            n75 = ranked_zs[3 * num_snps / 4];
+            Console.WriteLine("Zs percentiles {0} {1} {2}", n25, n50, n75);
+
+            //fill a list with all the b values to sort it
+            List<double> braw = new List<double>();
+            List<double> ranked_B = new List<double>();
+
+            for ( int i = 0; i < num_snps;i++)
             {
-                //set things up from the chisq file
-                Console.WriteLine("Assembling chi square apparatus...");
-                List<double> df = new List<double>();
-                List<double> bs = new List<double>();
-                ArrayList[] percentiles = new ArrayList[100];
-                for (int i = 0; i < percentiles.Length; i++)
+                if (i % window == 0 || i % window == window/2)
                 {
-                    percentiles[i] = new ArrayList();
-                }
-                int line_idx = 0;
-                foreach (string line in File.ReadLines(chisq_path))
-                {
-                    string[] cols = line.Replace("\n", "").Split('\t');
-                    df.Add(float.Parse(cols[0]));
-                    for (int j = 0; j < 9; j++)
+                    double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
+                    double b = 0.00;
+                    for (int j = 0;i<10;i++)
                     {
-                        percentiles[line_idx].Add(float.Parse(cols[j + 1]));
+                        b += (Math.Pow(z_std[i - j], 2));
                     }
-                    double rx = (Convert.ToDouble(percentiles[line_idx][2]) + Convert.ToDouble(percentiles[line_idx][0]) - 2 *
-                              Convert.ToDouble(percentiles[line_idx][1])) /
-                        (Convert.ToDouble(percentiles[line_idx][2]) - Convert.ToDouble(percentiles[line_idx][0]));
-                    bs.Add(rx);
-                    line_idx++;
+                    output_snps[i].B_standard = b;
+                    braw.Add(b);
+                    ranked_B.Add(b);
+                    bloc.Add(i);
                 }
+            }
 
-                //now start on using the chi square to the B values
-                //set up a list for ranking again
-                List<double> b_sorted = new List<double>();
-                List<double> braw = new List<double>();
-                //bs_list.OrderBy(x => x.Raw_p);
-                for (int i = window; i < num_snps; i++)
+            ranked_B.Sort();
+
+            //percentiles
+            n25 = ranked_B[braw.Count / 4];
+            n50 = ranked_B[braw.Count / 2];
+            n75 = ranked_B[3 * braw.Count / 4];
+
+            Console.WriteLine("B Percentiles {0} {1} {2}", n25, n50, n75);
+            double b_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
+            Console.WriteLine("B Bowley Skew {0}", b_skew);
+
+            double m2 = -1;
+            int jstar = 0;
+            if (b_skew > bs[0])
+            {
+                Console.WriteLine("Too much skew.");
+            }
+            else
+            {
+                for (int j = 1;j<bs.Count;j++)
                 {
-                    if (i % window == 0 || i % window == window / 2)
+                    if (b_skew > bs[j])
                     {
-                        double b = 0.0;
-                        for (int j = 0; j < window; j++)
-                        {
-                            b += Math.Pow(output_snps[i - j].B_standard, 2);
-                        }
-                        braw.Add(b);
-                        b_sorted.Add(b);
-                        bloc.Add(i);
+                        m2 = df[j];
+                        jstar = j;
+                        break;
                     }
                 }
-                b_sorted.Sort();
+            }
 
-                //percentiles
-                n25 = b_sorted[braw.Count / 4];
-                n50 = b_sorted[braw.Count / 2];
-                n75 = b_sorted[3 * braw.Count / 4];
+            Console.WriteLine("Degrees of freedom {0}", m2);
+            double cIQR = Convert.ToDouble(percentiles[jstar][2]) - Convert.ToDouble(percentiles[jstar][0]);
+            double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
 
-
-                double bowley_skew = (n75 + n25 - 2 * n50) / (n75 - n25);
-                Console.WriteLine("B Bowley skew " + bowley_skew);
-                double m2 = -1.0;
-                int jstar = 0;
-                if (bowley_skew > bs[0])
+            for (int j = 0;j<ranked_B.Count;j++)
+            {
+                double p = 0.0;
+                double bx = braw[j];
+                double bstar = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
+                if (bstar < Convert.ToDouble(percentiles[jstar][3]))
                 {
-                    Console.WriteLine("Too much skew.");
+                    p = 0.5;
+                }
+                else if (bstar > Convert.ToDouble(percentiles[jstar][8]))
+                {
+                    p = 5.0 * Math.Pow(10, (1.0 - 8.5)); //p less than table min
                 }
                 else
                 {
-                    for (int j = 1; j < bs.Count; j++)
+                    for (int k = 4;k<9;k++)
                     {
-                        if (bowley_skew > bs[j])
+                        if (bstar > Convert.ToDouble(percentiles[jstar][k-1]) && bstar <= Convert.ToDouble(percentiles[jstar][k]))
                         {
-                            m2 = df[j];
-                            jstar = j;
+                            double dx = (bstar - Convert.ToDouble(percentiles[jstar][k - 1])) / (Convert.ToDouble(percentiles[jstar][k]) - Convert.ToDouble(percentiles[jstar][k - 1]));
+                            double x = k - 1 + dx;
+                            p = 5.0 * Math.Pow(10, (1.0 - x));
                             break;
                         }
                     }
                 }
-                double cIQR_1 = Convert.ToDouble(percentiles[jstar][2]);
-                double cIQR_2 = Convert.ToDouble(percentiles[jstar][0]);
-                double cIQR = cIQR_1 - cIQR_2;
-                double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
-
-                double p = 0.0;
-                for (int j = 0; j < b_sorted.Count; j++)
+                if (j > 0)
                 {
-                    double bx = braw[j];
-                    double b_star = m2 + (bx - window) * (Math.Pow((2 * m2), 0.5)) / sigB;
-                    if (b_star < Convert.ToDouble(percentiles[jstar][3]))
-                    {
-                        p = 0.5;
-                    }
-                    else if (b_star > Convert.ToDouble(percentiles[jstar][8]))
-                    {
-                        p = 5.0 * Math.Pow(10, (1.0 - 8.5)); //p < table minimum
-                    }
-                    else
-                    {
-                        for (int k = 4; k < 9; k++)
-                        {
-                            if (b_star > Convert.ToDouble(percentiles[jstar][k - 1]) && b_star <= Convert.ToDouble(percentiles[jstar][k]))
-                            {
-                                double dx = (b_star - Convert.ToDouble(percentiles[jstar][k - 1])) / (Convert.ToDouble(percentiles[jstar][k]) - Convert.ToDouble(percentiles[jstar][k - 1]));
-                                double x = k - 1 + dx;
-                                p = 5.0 * Math.Pow(10, (1.0 - x));
-                                break;
-                            }
-                        }
-                    }
-                    if (j > 0)
-                    {
-                        output_snps[bloc[j - 1]].Raw_p = p;
-                        output_snps[bloc[j - 1]].B_star = b_star;
-                        output_snps[bloc[j - 1]].B_standard = bx;
-
-                        //spot check
-                        if (output_snps[bloc[j-1]].Chromosome ==1 && output_snps[bloc[j - 1]].Basepair == 4325177)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 5585167)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 12985544)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                        if (output_snps[bloc[j - 1]].Chromosome == 10 && output_snps[bloc[j - 1]].Basepair == 17736656)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                    }
-                    else
-                    {
-                        output_snps[bloc[j]].Raw_p = p;
-                        output_snps[bloc[j]].B_star = b_star;
-                        output_snps[bloc[j]].B_standard = bx;
-                        //spot check
-                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 4325177)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 5585167)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                        if (output_snps[bloc[j - 1]].Chromosome == 1 && output_snps[bloc[j - 1]].Basepair == 12985544)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                        if (output_snps[bloc[j - 1]].Chromosome == 10 && output_snps[bloc[j - 1]].Basepair == 17736656)
-                        {
-                            Console.WriteLine(output_snps[bloc[j - 1]].B_star);
-                        }
-                    }
-
+                    output_snps[j - 1].B_star = bstar;
+                    output_snps[j - 1].Raw_p = p;
                 }
-                //remove all where there is no b_star
-                output_snps.RemoveAll(x => !(x.B_star > 0));
+                else
+                {
+                    output_snps[j].B_star = bstar;
+                    output_snps[j].Raw_p = p;
+                }
             }
+
+            //remove all where there is no b_star
+            output_snps.RemoveAll(x => !(x.B_star > 0));
 
             return output_snps;
         }

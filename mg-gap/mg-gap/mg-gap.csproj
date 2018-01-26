@@ -113,6 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="support files\chisq.txt" />
+    <Content Include="support files\Updatedbs_analysis.py" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
