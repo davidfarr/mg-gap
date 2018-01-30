@@ -216,11 +216,13 @@ namespace mg_gap
             Console.WriteLine("Accepted " + output_snps.Count + " SNPs");
             Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDouble(num_snps)));
 
+            Console.WriteLine("Z Raw Count = {0}\nZ Std Count ={1}", zraw.Count, z_std.Count);
+
             //sort Z list (only the one actually for ranking)
             zranked.Sort();
-            var n25 = zranked[num_snps / 4];
-            var n50 = zranked[num_snps / 2];
-            var n75 = zranked[3 * num_snps / 4];
+            var n25 = Convert.ToDouble(zranked[num_snps / 4]);
+            var n50 = Convert.ToDouble(zranked[num_snps / 2]);
+            var n75 = Convert.ToDouble(zranked[3 * num_snps / 4]);
 
             //report
             Console.WriteLine("{0} SNP's had equal (non 0 or 1) population frequencies and were accepted.",diverge_0);
@@ -230,20 +232,27 @@ namespace mg_gap
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
 
             //create a temporary copy of z_std for getting Zs percentiles
-            List<double> ranked_zs = new List<double>();
-
-            for (int i = 0; i<z_std.Count;i++)
+            //List<double> ranked_zs = new List<double>();
+            //check for error
+            //for (int i = 0; i<z_std.Count;i++)
+            //{
+            //    double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance;
+            //    z_std[i] = z_std[i] / (Math.Pow(vdiv, 0.5));
+            //    ranked_zs.Add(z_std[i]);
+            //}
+            List<double> ranked_z = new List<double>();
+            for (int k = 0; k < z_std.Count;k++)
             {
-                double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance;
-                z_std[i] = z_std[i] / (Math.Pow(vdiv, 0.5));
-                ranked_zs.Add(z_std[i]);
+                double vdiv = Var_neutral + output_snps[k].C_variance + output_snps[k].T_variance;
+                z_std[k] = z_std[k] / (Math.Pow(vdiv, 0.5));
+                ranked_z.Add(z_std[k]);
             }
-
-
-            ranked_zs.Sort();
-            n25 = ranked_zs[num_snps / 4];
-            n50 = ranked_zs[num_snps / 2];
-            n75 = ranked_zs[3 * num_snps / 4];
+            //seems to be calculating right
+            ranked_z.Sort();
+            Console.WriteLine("Num_snps = {0}, ranked_z = {1}, output_snps = {2}\nranked_z[output_snps.Count / 4] = {3}", num_snps, ranked_z.Count, output_snps.Count, Convert.ToDouble(ranked_z[output_snps.Count / 4]));
+            n25 = Convert.ToDouble(ranked_z[output_snps.Count / 4]);
+            n50 = Convert.ToDouble(ranked_z[output_snps.Count / 2]);
+            n75 = Convert.ToDouble(ranked_z[3 * output_snps.Count / 4]);
             Console.WriteLine("Zs percentiles {0} {1} {2}", n25, n50, n75);
 
             //fill a list with all the b values to sort it
@@ -269,7 +278,12 @@ namespace mg_gap
 
             ranked_B.Sort();
 
+            Console.WriteLine("Diagnostic:\nB Raw Count = {0}\nB Ranked Count ={1}", braw.Count, ranked_B.Count);
+
             //percentiles
+            Console.WriteLine("n25 var = " + Convert.ToDouble(ranked_B[braw.Count / 4]));
+            Console.WriteLine(ranked_B[braw.Count / 4]);
+
             n25 = ranked_B[braw.Count / 4];
             n50 = ranked_B[braw.Count / 2];
             n75 = ranked_B[3 * braw.Count / 4];
