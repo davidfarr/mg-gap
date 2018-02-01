@@ -250,6 +250,9 @@ namespace mg_gap
             List<double> braw = new List<double>();
             List<double> ranked_B = new List<double>();
 
+            //test new snplist that's the size of braw
+            List<SNP> snploc = new List<SNP>();
+
             Console.WriteLine("VCF read complete, starting analysis...");
 
 
@@ -269,6 +272,7 @@ namespace mg_gap
                     braw.Add(b);
                     ranked_B.Add(b);
                     bloc.Add(k);
+                    snploc.Add(output_snps[k]);
                 }
             }
 
@@ -305,6 +309,7 @@ namespace mg_gap
             Console.WriteLine("Degrees of freedom {0}", m2);
             double cIQR = Convert.ToDouble(percentiles[jstar][2]) - Convert.ToDouble(percentiles[jstar][0]);
             double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
+            Console.WriteLine("cIQR {0}\nsigB {1}", cIQR, sigB);
 
             Console.WriteLine("Calculating B* for {0} SNPs",braw.Count);
             for (int j = 0;j<ranked_B.Count;j++)
@@ -335,23 +340,26 @@ namespace mg_gap
                 }
                 if (j > 0)
                 {
-                    output_snps[j - 1].B_star = bstar;
-                    output_snps[j - 1].Raw_p = p;
+                    snploc[j - 1].B_star = bstar;
+                    snploc[j - 1].Raw_p = p;
+                    snploc[j - 1].B_standard = bx;
+
                 }
                 else
                 {
-                    output_snps[j].B_star = bstar;
-                    output_snps[j].Raw_p = p;
+                    snploc[j].B_star = bstar;
+                    snploc[j].Raw_p = p;
+                    snploc[j].B_standard = bx;
+
                 }
             }
 
             //remove all where there is no b_star
-            output_snps.RemoveAll(x => !(x.B_star > 0));
-            output_snps.RemoveAll(x => !(x.B_standard > 0));
+            snploc.RemoveAll(x => !(x.B_star > 0));
 
             Console.WriteLine("Analysis complete, initiating FDR analysis...");
 
-            return output_snps;
+            return snploc;
         }
     }
 }

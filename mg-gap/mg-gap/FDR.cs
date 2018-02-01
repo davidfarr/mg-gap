@@ -37,11 +37,12 @@ namespace mg_gap
                 bs_list[i].Threshold_Value = fdr_selected * (i + 1) / (bscapacity / 2);
             }
 
+            //test
             Console.WriteLine("\n{0} SNPs removed below FDR threshold leaving {1}", sortedlist.RemoveAll(x => x.Raw_p > x.Threshold_Value), sortedlist.Count());
 
             //now show the sig b*
             //Console.WriteLine("\nSignificant B* = {0}\nSignificant B = {1}", bs_list.Min(x => x.B_star));
-            //Console.WriteLine("\nSignificant B* = {0}", sortedlist.Min(x => x.B_star));
+            Console.WriteLine("\nSignificant B* (the min B* after removing SNPs over threshold) {0}", sortedlist.Min(x => x.B_star));
             return sortedlist;
         }
     }
