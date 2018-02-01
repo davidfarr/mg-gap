@@ -18,8 +18,9 @@ namespace mg_gap
             List<double> zranked = new List<double>(); //this will be just for reporting initial stats
             int skip_counter = 0; //to keep track of how many SNPs are skipped
             int total_counter = 0; //keep track of how many SNPs there are total
-            List<Int32> bloc = new List<Int32>(); //test replacement for braw/bsorted/trimmed list. the CHR/BP doesn't match otherwise
+            List<Int64> bloc = new List<Int64>(); //test replacement for braw/bsorted/trimmed list. the CHR/BP doesn't match otherwise
             List<double> z_std = new List<double>(); //for standardized divergence (distinct from zraw and zranked (which is just a sorted zraw)
+            int[] outcomes = new int[] { 0, 0, 0 };
 
 
             //output list
@@ -85,7 +86,7 @@ namespace mg_gap
                             string chromosome = cols[0].ToString();
                             chromosome = chromosome.Remove(0, chromosome.IndexOf("_") + 1);//safely remove the non-standard id before the actual #
 
-                            if (Convert.ToInt32(chromosome) < 2)//we are only using up to chr 14 for this data
+                            if (Convert.ToInt32(chromosome) < 15)//we are only using up to chr 14 for this data
                             {
                                 int position = Convert.ToInt32(cols[1]);//grab the base pair
                                 string ref_base = cols[3]; //the reference base allele
@@ -94,6 +95,7 @@ namespace mg_gap
                                 //check for multiple bases
                                 if (alt_base.Length > 1)
                                 {
+                                    outcomes[0]++;
                                     skip_counter++;
                                 }
                                 else
@@ -197,8 +199,9 @@ namespace mg_gap
                                                 acceptedsnp.Transformed_t_variance = t_T_pop;
                                                 acceptedsnp.Old_identifier = cols[0];
                                                 output_snps.Add(acceptedsnp);
+                                                outcomes[2]++;
                                             }
-                                            else { skip_counter++; }
+                                            else { skip_counter++; outcomes[1]++; }
                                         }
                                         else { skip_counter++; }
                                     }
@@ -211,12 +214,9 @@ namespace mg_gap
             }
 
             //now process the list
-            Console.WriteLine("SNP processing complete, starting analysis...");
-            Console.WriteLine("Skipped " + skip_counter + " SNPs");
+            Console.WriteLine("# of Total Skipped " + skip_counter);
             Console.WriteLine("Accepted " + output_snps.Count + " SNPs");
             Console.WriteLine("Sampling/genotyping varience " + (Var_snp_specific / Convert.ToDouble(num_snps)));
-
-            Console.WriteLine("Z Raw Count = {0}\nZ Std Count ={1}", zraw.Count, z_std.Count);
 
             //sort Z list (only the one actually for ranking)
             zranked.Sort();
@@ -225,21 +225,13 @@ namespace mg_gap
             var n75 = Convert.ToDouble(zranked[3 * num_snps / 4]);
 
             //report
+            Console.WriteLine("# Skipped to do >1 base at site {0}\n# of SNPs with population freq. of 1 or 0 {1}\n# of SNPs carried for B analysis {2}", outcomes[0], outcomes[1], outcomes[2]);
             Console.WriteLine("{0} SNP's had equal (non 0 or 1) population frequencies and were accepted.",diverge_0);
             Console.WriteLine("Z percentiles (without direction) " + n25 + " " + n50 + " " + n75);
             Console.WriteLine("Total variance in Z (based on IQR) " + Math.Pow((n75 - n25 / 1.349), 2));
             double Var_neutral = (Math.Pow(((n75 - n25) / 1.349), 2)) - Var_snp_specific / num_snps;
             Console.WriteLine("Bulk sampling and library variance " + Var_neutral);
 
-            //create a temporary copy of z_std for getting Zs percentiles
-            //List<double> ranked_zs = new List<double>();
-            //check for error
-            //for (int i = 0; i<z_std.Count;i++)
-            //{
-            //    double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance;
-            //    z_std[i] = z_std[i] / (Math.Pow(vdiv, 0.5));
-            //    ranked_zs.Add(z_std[i]);
-            //}
             List<double> ranked_z = new List<double>();
             for (int k = 0; k < z_std.Count;k++)
             {
@@ -247,43 +239,42 @@ namespace mg_gap
                 z_std[k] = z_std[k] / (Math.Pow(vdiv, 0.5));
                 ranked_z.Add(z_std[k]);
             }
-            //seems to be calculating right
+
             ranked_z.Sort();
-            Console.WriteLine("Num_snps = {0}, ranked_z = {1}, output_snps = {2}\nranked_z[output_snps.Count / 4] = {3}", num_snps, ranked_z.Count, output_snps.Count, Convert.ToDouble(ranked_z[output_snps.Count / 4]));
             n25 = Convert.ToDouble(ranked_z[output_snps.Count / 4]);
             n50 = Convert.ToDouble(ranked_z[output_snps.Count / 2]);
             n75 = Convert.ToDouble(ranked_z[3 * output_snps.Count / 4]);
             Console.WriteLine("Zs percentiles {0} {1} {2}", n25, n50, n75);
 
-            //fill a list with all the b values to sort it
+            //List for B and a list to sort B
             List<double> braw = new List<double>();
             List<double> ranked_B = new List<double>();
 
-            for ( int i = 0; i < num_snps;i++)
+            Console.WriteLine("VCF read complete, starting analysis...");
+
+
+            //calculate B
+            Console.WriteLine("Calculating B for {0} SNPs...", outcomes[2]);
+            for ( int k = window; k < num_snps;k++)
             {
-                if (i % window == 0 || i % window == window/2)
+                if (k % window == 0 || k % window == window/2)
                 {
-                    double vdiv = Var_neutral + output_snps[i].C_variance + output_snps[i].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
+                    double vdiv = Var_neutral + output_snps[k].C_variance + output_snps[k].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
                     double b = 0.00;
-                    for (int j = 0;i<10;i++)
+                    for (int j = 0;j<window;j++)
                     {
-                        b += (Math.Pow(z_std[i - j], 2));
+                        b += (Math.Pow(z_std[k - j], 2));
                     }
-                    output_snps[i].B_standard = b;
+                    output_snps[k].B_standard = b;
                     braw.Add(b);
                     ranked_B.Add(b);
-                    bloc.Add(i);
+                    bloc.Add(k);
                 }
             }
 
             ranked_B.Sort();
 
-            Console.WriteLine("Diagnostic:\nB Raw Count = {0}\nB Ranked Count ={1}", braw.Count, ranked_B.Count);
-
             //percentiles
-            Console.WriteLine("n25 var = " + Convert.ToDouble(ranked_B[braw.Count / 4]));
-            Console.WriteLine(ranked_B[braw.Count / 4]);
-
             n25 = ranked_B[braw.Count / 4];
             n50 = ranked_B[braw.Count / 2];
             n75 = ranked_B[3 * braw.Count / 4];
@@ -315,6 +306,7 @@ namespace mg_gap
             double cIQR = Convert.ToDouble(percentiles[jstar][2]) - Convert.ToDouble(percentiles[jstar][0]);
             double sigB = (n75 - n25) * Math.Pow((2 * m2), 0.5) / cIQR;
 
+            Console.WriteLine("Calculating B* for {0} SNPs",braw.Count);
             for (int j = 0;j<ranked_B.Count;j++)
             {
                 double p = 0.0;
@@ -355,6 +347,9 @@ namespace mg_gap
 
             //remove all where there is no b_star
             output_snps.RemoveAll(x => !(x.B_star > 0));
+            output_snps.RemoveAll(x => !(x.B_standard > 0));
+
+            Console.WriteLine("Analysis complete, initiating FDR analysis...");
 
             return output_snps;
         }

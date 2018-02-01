@@ -62,3 +62,6 @@ mg-gap/mg-gap/obj/Debug/mg-gap.pdb
 *.CopyComplete
 *.cache
 *.ide
+mg-gap/.vs/mg-gap/v15/Server/sqlite3/db.lock
+mg-gap/.vs/mg-gap/v15/Server/sqlite3/storage.ide-shm
+mg-gap/.vs/mg-gap/v15/Server/sqlite3/storage.ide-wal

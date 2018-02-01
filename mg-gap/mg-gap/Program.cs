@@ -19,11 +19,11 @@ namespace v1_gap
             //set up the filepath - in this version it's hard-coded
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
             //vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali.vcf";
-            //vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
+            vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
             string qtlpath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
-            //qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
+            qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
             string chisq_path = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
-            //chisq_path = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
+            chisq_path = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
@@ -72,92 +72,77 @@ namespace v1_gap
 
 
             double median = 0.0;
-            if (File.Exists(splinepath) == true)
-            {
-                Console.WriteLine("GenWin file found, obtaining median window value...");
-                try
-                {
-                    List<int> windows = new List<int>();
-                    using (var fileStream = File.OpenRead(splinepath))
-                    using (var streamReader = new StreamReader(fileStream))
-                    {
-                        String line;
-                        while ((line = streamReader.ReadLine()) != null)
-                        {
-                            /*Guide to splinewindows format
-                             * 0 = CHRcol (snnaffold #)
-                             * 1 = Window start bp position
-                             * 2 = window end bp position
-                             * 3 = SNP count (number of snps in the window)
-                             * 4 = Mean Y
-                             * 5 = W statistic
-                             * */
-                            //first row is headers, skip
-                            if (!line.Contains("CHRcol"))
-                            {
-                                string[] cols = line.Replace("\n", "").Split('\t');
-                                windows.Add(Convert.ToInt16(cols[3]));
-                            }
-                        }
-                    }
-                    //windows obtained successfully, now get the median
-                    if (windows == null || windows.Count == 0)
-                    {
-                        Console.WriteLine("No window sizes to calculate!");
-                    }
-                    else
-                    {
-                        windows.Sort();
-                        int middle = windows.Count / 2;
-                        median = (windows.Count % 2 != 0) ? (double)windows[middle] : ((double)windows[middle] + (double)windows[middle - 1]) / 2;
-                        Console.WriteLine("The median window size is " + median.ToString() + ".");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-            else
-            {
-                Console.WriteLine("No finished file found from spline analysis!");
-            }
+            //if (File.Exists(splinepath) == true)
+            //{
+            //    Console.WriteLine("GenWin file found, obtaining median window value...");
+            //    try
+            //    {
+            //        List<int> windows = new List<int>();
+            //        using (var fileStream = File.OpenRead(splinepath))
+            //        using (var streamReader = new StreamReader(fileStream))
+            //        {
+            //            String line;
+            //            while ((line = streamReader.ReadLine()) != null)
+            //            {
+            //                /*Guide to splinewindows format
+            //                 * 0 = CHRcol (snnaffold #)
+            //                 * 1 = Window start bp position
+            //                 * 2 = window end bp position
+            //                 * 3 = SNP count (number of snps in the window)
+            //                 * 4 = Mean Y
+            //                 * 5 = W statistic
+            //                 * */
+            //                //first row is headers, skip
+            //                if (!line.Contains("CHRcol"))
+            //                {
+            //                    string[] cols = line.Replace("\n", "").Split('\t');
+            //                    windows.Add(Convert.ToInt16(cols[3]));
+            //                }
+            //            }
+            //        }
+            //        //windows obtained successfully, now get the median
+            //        if (windows == null || windows.Count == 0)
+            //        {
+            //            Console.WriteLine("No window sizes to calculate!");
+            //        }
+            //        else
+            //        {
+            //            windows.Sort();
+            //            int middle = windows.Count / 2;
+            //            median = (windows.Count % 2 != 0) ? (double)windows[middle] : ((double)windows[middle] + (double)windows[middle - 1]) / 2;
+            //            Console.WriteLine("The median window size is " + median.ToString() + ".");
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine(ex.Message);
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("No finished file found from spline analysis!");
+            //}
 
             //now feed the median value back through b processing, then b*
             //need to hold on to the data for FDR though
+
+            //for speeding up testing
+            median = 6;
             if (median > 0)
             {
-                //test old way
-                //List<string> oldlist = mg_gap.VcfParser.b_processing(Convert.ToInt32(median), vcf_path, 'Y');
-                //using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_oldversion_" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
-                //{
-                //    finalfile.WriteLine("Oldname\tB\tB*\tP");
-                //    for (int i = 0; i < oldlist.Count; i++)
-                //    {
-                //        finalfile.WriteLine(oldlist[i].ToString());
-                //    }
-                //}
-
-
-
-
-
                 List<mg_gap.SNP> snpList = mg_gap.VCF_Analyzer.SNP_list(Convert.ToInt32(median), vcf_path, chisq_path);
                 Console.WriteLine("Re-analyzing for B* based on median window size " + median + " @ " + DateTime.Now);
 
                 //Start the FDR process
-                Console.WriteLine("What FDR would you like to run against annotation? (Enter as actual decimal)");
-                double fdr_input = 0.00;
-                //override  for unattended
-                //double.TryParse(Console.ReadLine(), out fdr_input);
-                Console.WriteLine("Running FDR analysis at " + fdr_input);
-                //override
-                List<mg_gap.SNP> fdrlist = mg_gap.FDR.Process(snpList, 0.05);
-                mg_gap.FDR.Process(snpList, fdr_input);
+                //This should be a user config variable in the future if they would prefer any different settings
+                double fdr_input = 0.05;
+                Console.WriteLine("Running FDR analysis at " + fdr_input + "...");
+                List<mg_gap.SNP> fdrlist = mg_gap.FDR.Process(snpList, fdr_input);
 
                 //start getting the annotations
                 Console.WriteLine("\nFDR Analysis complete, gathering annotations...");
                 List<mg_gap.SNP> annotatedlist = mg_gap.Annotator.AnnotatedList(fdrlist, qtlpath);
+
                 using (StreamWriter finalfile = File.CreateText("Bs_" + median + "_FDR5" + "_SCvsT_annotated" + DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Year + ".txt"))
                 {
                     finalfile.WriteLine("CHR\tBP\tB\tBs\tPraw\tRnaSeqP\tRnaSeqPadj\tFDR_ThresholdValue\tDescription\tGene");
