@@ -19,11 +19,11 @@ namespace v1_gap
             //set up the filepath - in this version it's hard-coded
             string vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
             //vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali.vcf";
-            vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
+            //vcf_path = @"C:/Users/David/Desktop/Ali_w_767.vcf"; //private environment
             string qtlpath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
-            qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
+            //qtlpath = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/QTL10_778_781_RNASEQ_2016.csv";
             string chisq_path = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
-            chisq_path = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
+            //chisq_path = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
 
             //run the vcf parser for SNP window of 1
             Stopwatch methodTime = new Stopwatch();
@@ -32,38 +32,38 @@ namespace v1_gap
 
 
             //new way for R work prep
-            //using (StreamWriter write_results = File.CreateText("B1_new.txt"))
-            //{
-            //    write_results.WriteLine("CHR\tBP\tB");
+            using (StreamWriter write_results = File.CreateText("B1_new.txt"))
+            {
+                write_results.WriteLine("CHR\tBP\tB");
 
-            //    foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(1, vcf_path, 'N',chisq_path))
-            //    {
-            //        write_results.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
-            //    }
-            //}
+                foreach (mg_gap.SNP snp in mg_gap.VCF_Analyzer.SNP_list(1, vcf_path, chisq_path))
+                {
+                    write_results.WriteLine("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard);
+                }
+            }
 
 
             methodTime.Stop();
             Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
 
-            //try
-            //{
-            //    //do R stuff
-            //    Console.WriteLine("Beginning R execution at " + DateTime.Now);
-            //    Stopwatch r_stopwatch = new Stopwatch();
-            //    r_stopwatch.Start();
-            //    REngine engine = REngine.GetInstance();
-            //    Console.WriteLine("Successfully created R engine instance. Evaluating script...");
-            //    string rscriptpath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //lab env
-            //    //string rscriptpath = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //personal env
-            //    engine.Evaluate(@"source('" + rscriptpath + "')");
-            //    r_stopwatch.Stop();
-            //    Console.WriteLine("R exited successfully at " + DateTime.Now + "\nRun time " + r_stopwatch.Elapsed.ToString());
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine(ex.Message);
-            //}
+            try
+            {
+                //do R stuff
+                Console.WriteLine("Beginning R execution at " + DateTime.Now);
+                Stopwatch r_stopwatch = new Stopwatch();
+                r_stopwatch.Start();
+                REngine engine = REngine.GetInstance();
+                Console.WriteLine("Successfully created R engine instance. Evaluating script...");
+                string rscriptpath = @"N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //lab env
+                //string rscriptpath = @"C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"; //personal env
+                engine.Evaluate(@"source('" + rscriptpath + "')");
+                r_stopwatch.Stop();
+                Console.WriteLine("R exited successfully at " + DateTime.Now + "\nRun time " + r_stopwatch.Elapsed.ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
             //after this then find the median out of the output file and then run the b processing at that window and then b* processing - then move to java program
             //check if we recognize that the file has now been put there
@@ -72,56 +72,56 @@ namespace v1_gap
 
 
             double median = 0.0;
-            //if (File.Exists(splinepath) == true)
-            //{
-            //    Console.WriteLine("GenWin file found, obtaining median window value...");
-            //    try
-            //    {
-            //        List<int> windows = new List<int>();
-            //        using (var fileStream = File.OpenRead(splinepath))
-            //        using (var streamReader = new StreamReader(fileStream))
-            //        {
-            //            String line;
-            //            while ((line = streamReader.ReadLine()) != null)
-            //            {
-            //                /*Guide to splinewindows format
-            //                 * 0 = CHRcol (snnaffold #)
-            //                 * 1 = Window start bp position
-            //                 * 2 = window end bp position
-            //                 * 3 = SNP count (number of snps in the window)
-            //                 * 4 = Mean Y
-            //                 * 5 = W statistic
-            //                 * */
-            //                //first row is headers, skip
-            //                if (!line.Contains("CHRcol"))
-            //                {
-            //                    string[] cols = line.Replace("\n", "").Split('\t');
-            //                    windows.Add(Convert.ToInt16(cols[3]));
-            //                }
-            //            }
-            //        }
-            //        //windows obtained successfully, now get the median
-            //        if (windows == null || windows.Count == 0)
-            //        {
-            //            Console.WriteLine("No window sizes to calculate!");
-            //        }
-            //        else
-            //        {
-            //            windows.Sort();
-            //            int middle = windows.Count / 2;
-            //            median = (windows.Count % 2 != 0) ? (double)windows[middle] : ((double)windows[middle] + (double)windows[middle - 1]) / 2;
-            //            Console.WriteLine("The median window size is " + median.ToString() + ".");
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine(ex.Message);
-            //    }
-            //}
-            //else
-            //{
-            //    Console.WriteLine("No finished file found from spline analysis!");
-            //}
+            if (File.Exists(splinepath) == true)
+            {
+                Console.WriteLine("GenWin file found, obtaining median window value...");
+                try
+                {
+                    List<int> windows = new List<int>();
+                    using (var fileStream = File.OpenRead(splinepath))
+                    using (var streamReader = new StreamReader(fileStream))
+                    {
+                        String line;
+                        while ((line = streamReader.ReadLine()) != null)
+                        {
+                            /*Guide to splinewindows format
+                             * 0 = CHRcol (snnaffold #)
+                             * 1 = Window start bp position
+                             * 2 = window end bp position
+                             * 3 = SNP count (number of snps in the window)
+                             * 4 = Mean Y
+                             * 5 = W statistic
+                             * */
+                            //first row is headers, skip
+                            if (!line.Contains("CHRcol"))
+                            {
+                                string[] cols = line.Replace("\n", "").Split('\t');
+                                windows.Add(Convert.ToInt16(cols[3]));
+                            }
+                        }
+                    }
+                    //windows obtained successfully, now get the median
+                    if (windows == null || windows.Count == 0)
+                    {
+                        Console.WriteLine("No window sizes to calculate!");
+                    }
+                    else
+                    {
+                        windows.Sort();
+                        int middle = windows.Count / 2;
+                        median = (windows.Count % 2 != 0) ? (double)windows[middle] : ((double)windows[middle] + (double)windows[middle - 1]) / 2;
+                        Console.WriteLine("The median window size is " + median.ToString() + ".");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No finished file found from spline analysis!");
+            }
 
             //now feed the median value back through b processing, then b*
             //need to hold on to the data for FDR though
