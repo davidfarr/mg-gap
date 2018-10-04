@@ -10,7 +10,7 @@ import math
 import random
 
 if len(sys.argv) != 3: #argument needs to be S, input vcf
-    S = 6 ## of snps per window (i.e. window size)
+    S = 6 ## of snps per window (i.e. window size). The GenWin median was 6 so for expediency this has been manually entered.
     inpath = '//ENTROPY/All/School/Biology Research/'
 
     #Set up the input/output files
@@ -20,18 +20,18 @@ if len(sys.argv) != 3: #argument needs to be S, input vcf
         print("opened vcf")
         in1  =open(inpath+"chisq.txt", "rU")
         print("opened chisq")
-        out0 =open(inpath+"Results" + str(6) + ".txt", "w")
-        out1 =open(inpath+"Vz" + str(6) + ".txt", "w")
-        out2 =open(inpath+"z" + str(6) + ".txt","w")
-        out3 =open(inpath+"B" + str(6) + ".txt","w")
+        out0 =open(inpath+"Results" + str(6) + ".txt", "w") #a more verbose out3
+        out1 =open(inpath+"Vz" + str(6) + ".txt", "w")#not typically used
+        out2 =open(inpath+"z" + str(6) + ".txt","w")#not typically used
+        out3 =open(inpath+"B" + str(6) + ".txt","w") #this is the important one for getting B, B*, P, in one result file.
     except:
         print("error with paths")
 
     #Output in a standard format?
-    outkk = open(inpath + "Ali_w_767.vcf" + ".yut","w")
+    outkk = open(inpath + "Ali_w_767.vcf" + ".yut","w") #left this in, but no current use in application
 
     #User may define option for:
-    Min_reads = 20
+    Min_reads = 20 #this was left the same - seems standard but may need to be adjusted if data is nanopore sequenced... will revisit.
     
     #Set up arrays for handling data *during* analysis
     LineID = []
@@ -73,7 +73,7 @@ if len(sys.argv) != 3: #argument needs to be S, input vcf
         else:
             chromosome = cols[0] #snnafold_x
             chromosome = chromosome[9:] #x (we got rid of everything so it's just the number)
-            if int(chromosome) < 15:
+            if int(chromosome) < 15: #Many more contigs than chromosomes - we're only looking between chr 1 and 14 for meaningful data.
                         scaff = cols[0].split('_')
                         position = int(cols[1])
                         ref_base = cols[3]
@@ -87,7 +87,7 @@ if len(sys.argv) != 3: #argument needs to be S, input vcf
                             T_dat = []
 
 
-                            for j in range(10,len(cols)): #ali_w_767.vcf
+                            for j in range(10,len(cols)): #ali_w_767.vcf... keep in mind that the data *structure* difference between ali.vcf and w/767 is the 767 bam file is the first bam column index, so must add +1 to all the indexes that referenced bam file cols
                                 info = cols[j].split(':')
                                 if len(info) == 5 and (j < 13): #ali_w_767.vcf
                                     AD = info[1].split(",")
@@ -135,6 +135,10 @@ if len(sys.argv) != 3: #argument needs to be S, input vcf
                                         else:
                                             zraw.append(-diverge)
                                         z_std.append(diverge)
+                                        #Major change:
+                                        #vdiv used to be calculated here, but it was based off the var_neutral that was highly specific and precalculated in
+                                        #the original python script - changing the window size would have resulted in an incorrect var_neutral.
+                                        #The solution was to keep a seperate list of only (+) diverge and calculate it programmatically after we get the z percentiles
                                         accepted_snps.append([cols[0] + "_" + cols[1], var_C, var_T])
                                     else:
                                         outcomes[1] += 1
@@ -158,7 +162,9 @@ if len(sys.argv) != 3: #argument needs to be S, input vcf
     print("Bulk sampling and library variance ",Var_neutral)
 
 # Run through all accepted SNPs to calculate standardized divergence ^ 2 :: B for 1 snp
-#since we only just got var neutral now we need to go back through the z_std list with only the (+) divergence and finish the calculation to standardize and keep going
+#Major Change:
+#since we only just got var neutral now we need to go back through the z_std list with only the (+) divergence and
+# finish the calculation to standardize and keep going
     for k in range(0,len(z_std)):
         vdiv = Var_neutral + accepted_snps[k][1] + accepted_snps[k][2]
         z_std[k] = z_std[k]/(vdiv**0.5)
