@@ -258,21 +258,33 @@ namespace mg_gap
 
             //calculate B
             Console.WriteLine("Calculating B for {0} SNPs...", outcomes[2]);
+            //to grab the bp position of each of the snps in the window, let's generate a new snp list to output
+            List<Window> allWindowSNPS = new List<Window>();
             for ( int k = window; k < num_snps;k++)
             {
                 if (k % window == 0 || k % window == window/2)
                 {
+                    //set up window info
+                    Window newWindow = new Window();
+                    newWindow.Chromosome = output_snps[k].Chromosome;
+                    newWindow.S_Size = k;
+
                     double vdiv = Var_neutral + output_snps[k].C_variance + output_snps[k].T_variance; // 0 is snnffold_X, 1 is var_C and 2 is var_T
                     double b = 0.00;
-                    for (int j = 0;j<window;j++)
+                    for (int j = 0;j<window;j++) //this is the part specifically that iterates through each window
                     {
                         b += (Math.Pow(z_std[k - j], 2));
+                        //add the snp to the list
+                        newWindow.SNP_Window.Add(output_snps[k]);
                     }
+
+                    allWindowSNPS.Add(newWindow); //TEST
+
                     output_snps[k].B_standard = b;
                     braw.Add(b);
                     ranked_B.Add(b);
                     bloc.Add(k);
-                    snploc.Add(output_snps[k]);
+                    snploc.Add(output_snps[k]); //adds the last snp of the window with value b
                 }
             }
 
@@ -351,6 +363,17 @@ namespace mg_gap
                     snploc[j].Raw_p = p;
                     snploc[j].B_standard = bx;
 
+                }
+            }
+
+            //write the test data from snp window thingymabob
+            using (StreamWriter windowdata = File.CreateText("TEST_WindowData.txt"))
+            {
+                windowdata.WriteLine("CHR\tBP");
+                foreach (Window entry in allWindowSNPS)
+                {
+                    foreach(SNP snp in entry.SNP_Window)
+                    windowdata.WriteLine(snp.Chromosome.ToString() + '\t' + snp.Basepair.ToString());
                 }
             }
 

@@ -26,8 +26,8 @@ namespace mg_gap
         private int originalindex = 0;
         private string rnaseqp = string.Empty;
         private int fdr_rank = 0;
-        private int windowstart = 0;
-        private int windowstop = 0;
+        //private int windowstart = 0;
+        //private int windowstop = 0;
 
         public int Basepair { get { return basepair; } set { basepair = value; } }
         public int Chromosome { get { return chromosome; } set { chromosome = value; } }
@@ -46,7 +46,7 @@ namespace mg_gap
         public int Original_index { get { return originalindex; } set { originalindex = value; } }
         public string RnaSeqPval {  get { return rnaseqp; } set { rnaseqp = value; } }
         public int FDR_Rank { get { return fdr_rank; } set { fdr_rank = value; } }
-        public int WindowStart { get { return windowstart; } set { windowstart = value; } }
-        public int WindowStop { get { return windowstop; } set { windowstop = value; } }
+        //public int WindowStart { get { return windowstart; } set { windowstart = value; } }
+        //public int WindowStop { get { return windowstop; } set { windowstop = value; } }
     }
 }
