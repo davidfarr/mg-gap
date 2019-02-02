@@ -1,0 +1,1 @@
+class VCF_Analyzer:

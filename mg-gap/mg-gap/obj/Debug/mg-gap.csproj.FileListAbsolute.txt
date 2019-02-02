@@ -49,3 +49,6 @@ N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\obj\
 N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.csproj.CoreCompileInputs.cache
 N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.exe
 N:\app dev\scoville research\program files\github repo\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.pdb
+C:\Users\Heathro\mg-gap\mg-gap\mg-gap\bin\Debug\mg-gap.exe.config
+C:\Users\Heathro\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.exe
+C:\Users\Heathro\mg-gap\mg-gap\mg-gap\obj\Debug\mg-gap.pdb
