@@ -1,4 +1,7 @@
 
+# TODO remove - test print
+print("hi there!")
+
 # set up the vcf and chisq filepaths
 # TODO enter the correct paths
 vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
