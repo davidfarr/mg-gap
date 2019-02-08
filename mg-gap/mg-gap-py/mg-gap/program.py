@@ -26,12 +26,14 @@ if median > 0:
 
     # Start the FDR process
     # This should be a user config variable in the future if they would prefer any different settings
+    # TODO maybe create user input for fdr_input value
     fdr_input = 0.05
     print("Running FDR analysis at ", fdr_input, "...")
+    # TODO save this fdrlist to a "tab" separated values, use a .csv, file with headers 
     fdrlist = FDR.Process(snpList, fdr_input)
-
+    
     # Start getting the annotations !! May stop here for the purposes of 
-    # this program. TODO ask about this.
+    # this program. TODO ask about this. Yes we canstop here.
 
 
 
