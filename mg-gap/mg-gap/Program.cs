@@ -30,7 +30,8 @@ namespace v1_gap
             Console.WriteLine("Starting B processing at " + DateTime.Now + "...");
             methodTime.Start();
 
-
+            // TODO add this in, but maybe pass variable instead of writing to file, the variable is a list of SNPs
+            // but maybe gen win needs a file to read in the script
             //new way for R work prep
             //using (StreamWriter write_results = File.CreateText("B1_new.txt"))
             //{
@@ -45,7 +46,7 @@ namespace v1_gap
 
             methodTime.Stop();
             Console.WriteLine("B processing time: " + methodTime.Elapsed.ToString());
-
+            // TODO after b values in a window of s=1 is determined above, this feeds results into genwin
             //try
             //{
             //    //do R stuff
@@ -72,6 +73,7 @@ namespace v1_gap
 
 
             double median = 0.0;
+            // TODO add this code. it calculates median
             //if (File.Exists(splinepath) == true)
             //{
             //    Console.WriteLine("GenWin file found, obtaining median window value...");
