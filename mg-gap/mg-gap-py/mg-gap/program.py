@@ -35,7 +35,7 @@ if median > 0:
     # Start getting the annotations !! May stop here for the purposes of 
     # this program. TODO ask about this. Yes we canstop here.
 
-
+    # TODO Something that may be of interest later. Connect to pythosome site to get Gene, description, and RNA SEQ data.
 
 
 # TODO Look up "Convert" method equivalent in python
