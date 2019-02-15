@@ -11,10 +11,30 @@ vcf_path = "N:/app dev/scoville research/program files/dev migration for windows
 chisq_path = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
 
 # run the vcf parser for SNP window of 1
+start_time = time.time()
+print("Starting B processing at :", start_time)
 
-# TODO there's some code here for timing, then a lot of code that is
-# commented out, code that includes the Window class. 
-# Ask - Is this important? 
+# TODO Maybe pass variable instead of writing to file, the variable is a list of SNPs
+# then again, check what genwin needs, it may NEED a file to read in the script
+
+# open a new file, w is write, + is create if not already in directory
+# TODO question: what is the 'N' in the arguments for VCF_Analyzer?...only takes 3
+# arguments, but with the 'N' is 4
+write_results = open("B1_new.txt", "w+")
+write_results.write("CHR\tBP\tB\n")
+for snp in VCF_Analyzer.SNP_list(1, vcf_path, 'N', chisq_path):
+    write_results.write("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard + "\n")
+elapsed_time = time.time() - start_time
+print("B processing time: ", elapsed_time)
+
+# after b values in a window of s = 1 is determined above,
+# this next block feeds results into genwin
+start_time = time.time()
+print("Beginning R execution at", start_time)
+# create R engine, do try/ catch?
+print("Successfully created R engine instance. Evaluating script...")
+#
+
 
 # feed the median value back through b processing, then b* 
 # need to hold on to the data for FDR though
