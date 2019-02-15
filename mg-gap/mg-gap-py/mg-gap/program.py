@@ -1,23 +1,25 @@
 # import python packages
 import time
+import subprocess # for running an R script
 
 # import classes
 import VCF_Analyzer
 import FDR 
 
-# set up the vcf and chisq filepaths
-# TODO enter the correct paths
+
+# STEP 1 ----------
+#  - set up the vcf and chisq filepaths
+#  - NOTE for testing, enter the correct paths
 vcf_path = "N:/app dev/scoville research/program files/dev migration for windows/vcf files/Ali_w_767.vcf";
 chisq_path = "C:/Users/David/Documents/GitHub/mg-gap/mg-gap/mg-gap/support files/chisq.txt";
 
-# run the vcf parser for SNP window of 1
+
+# STEP 2 ----------
+#  - run the vcf parser to determine b value for a SNP window of 1 (s = 1) 
+#  - creates a snp list file called B1_new.txt, which genwin will read later
 start_time = time.time()
 print("Starting B processing at :", start_time)
 
-# TODO Maybe pass variable instead of writing to file, the variable is a list of SNPs
-# then again, check what genwin needs, it may NEED a file to read in the script
-
-# open a new file, w is write, + is create if not already in directory
 # TODO question: what is the 'N' in the arguments for VCF_Analyzer?...only takes 3
 # arguments, but with the 'N' is 4
 write_results = open("B1_new.txt", "w+")
@@ -27,17 +29,53 @@ for snp in VCF_Analyzer.SNP_list(1, vcf_path, 'N', chisq_path):
 elapsed_time = time.time() - start_time
 print("B processing time: ", elapsed_time)
 
-# after b values in a window of s = 1 is determined above,
-# this next block feeds results into genwin
+
+# STEP 3 ----------
+#  - calls the R script, GenWin 
+#  - this reads the B1_new.txt file that was created above
+#  - GenWin creates a file called "splinewindows.txt"
 start_time = time.time()
 print("Beginning R execution at", start_time)
-# create R engine, do try/ catch?
-print("Successfully created R engine instance. Evaluating script...")
-#
+# NOTE for testing: enter correct path
+# TODO need to test this R call. Make sure Rscript is running from correct directory
+rscript_path = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/support files/GenWin_script_12_29_2016.R"
+subprocess.call(["Rscript", rscript_path])
+elapsed_time = time.time() - start_time
+print("R exited successfully.\nRun time: ", elapsed_time)
+ 
+
+# STEP 4 ----------
+#  - calculate the median from the "splinewindows.txt" file created by GenWin
+#  - run the b processing at that window and then b* processing 
+#  - then move to java program?
+#  - check if we recognize that the file has now been put there
+"""
+Guide to splinewindows format
+   * 0 = CHRcol (snnaffold #)
+   * 1 = Window start bp position
+   * 2 = window end bp position
+   * 3 = SNP count (number of snps in the window)
+   * 4 = Mean Y
+   * 5 = W statistic
+   * first row is headers, skip
+"""
+splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
+# TODO add some error checking code, like try/catch
+print("GenWin file found, obtaining median window value...")
+windows = []
+with open(splinepath, "r") as sp:
+    sp.readline() # read past the header
+    for line in sp:
+        if ("CHRcol" not in line):
+            cols = []
+            cols.append(line.replace("\n", "").split("\t"))
+            windows.append()
+            # NOTE !!! Stopped here
 
 
-# feed the median value back through b processing, then b* 
-# need to hold on to the data for FDR though
+# STEP 5 ----------
+#  - feed the median value back through b processing, then b* 
+#  - need to hold on to the data for FDR though
 median = 6
 if median > 0:
     # TODO need to find equivalent "Convert" method in python see commented code below

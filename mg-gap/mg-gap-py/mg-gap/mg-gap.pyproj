@@ -37,7 +37,11 @@
     <Compile Include="program.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="chisq.txt" />
+    <Content Include="support_files\chisq.txt" />
+    <Content Include="support_files\GenWin_script_12_29_2016.R" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="support_files\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
