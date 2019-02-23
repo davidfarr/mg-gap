@@ -37,9 +37,9 @@ class FDR:
             bs_list[i].threshold_value = fdr_selected * (i + 1) / (bs_capacity / 2)
 
         # TEST
-        print("\n%s SNPs removed below FDR threshold leaving %s" % ( list(filter((raw_p > threshold_value).__ne__, sorted_list)), len(sorted_list) )
+        print("\n%s SNPs removed below FDR threshold leaving %s" % (list(filter((raw_p > threshold_value).__ne__, sorted_list)), len(sorted_list)) )
 
-        # Now show the sig b star
+        # Now show the sig b*
         print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda x: x.b_star))
 
-        return sortedList # return a list of SNPs
+        return sorted_list # return a list of SNPs
