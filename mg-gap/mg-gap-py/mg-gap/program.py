@@ -84,7 +84,6 @@ else:
 #  - feed the median value back through b processing, then b* 
 #  - need to hold on to the data for FDR - make a tab .csv
 if median > 0:
-    # TODO need to find equivalent "Convert" method in python see commented code below
     snpList = VCF_Analyzer.SNP_list(int(median), vcf_path, chisq_path)
     print("Re-analyzing for B* based on median window size ", median, " @ ", time.ctime)
 
@@ -96,7 +95,7 @@ if median > 0:
     # TODO save this fdrlist to a "tab" separated values, use a .csv, file with headers 
     fdrlist = FDR.Process(snpList, fdr_input)
     
-    # Start getting the annotations !! May stop here for the purposes of 
-    # this program. TODO ask about this. Yes we canstop here.
+    # Start getting the annotations !! Can stop here for the purposes of 
+    # this program. 
 
     # TODO Something that may be of interest later. Connect to pythosome site to get Gene, description, and RNA SEQ data.
