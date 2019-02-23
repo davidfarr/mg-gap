@@ -20,7 +20,26 @@ import SNP
 
 class FDR:
     def process(bs_list, fdr_selected):
-        # TODO add all the code :)
        
-        sortedList = [] # place holder variable
+        sorted_list = bs_list.sort(key = lambda x: x.raw_p)
+        
+        rank_assignment = 1
+        for snp in sorted_list:
+            snp.fdr_rank = rank_assignment
+            rank_assignment += 1
+         
+        num_window = rank_assignment / 2
+        for snp in sorted_list:
+            snp.threshhold_value = (fdr_selected * snp.fdr_rank) / num_window 
+
+        bs_capacity = len(bs_list)
+        for i in range(0, len(bs_list)):
+            bs_list[i].threshold_value = fdr_selected * (i + 1) / (bs_capacity / 2)
+
+        # TEST
+        print("\n%s SNPs removed below FDR threshold leaving %s" % ( list(filter((raw_p > threshold_value).__ne__, sorted_list)), len(sorted_list) )
+
+        # Now show the sig b star
+        print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda x: x.b_star))
+
         return sortedList # return a list of SNPs
