@@ -276,7 +276,7 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
                 break
 
     print ("Degrees of freedom: ", m)
-    cIQR = percentiles[jstar][2] - percentiles[jstar][0]
+    cIQR = percentiles[jstar][2] - percentiles[jstar][0] #TODO error here
     sigB = (n75 - n25) * (2 * m)**0.5 / cIQR
     print("cIQR %s \nsigB %s" % (cIQR, sigB))
 
