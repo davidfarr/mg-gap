@@ -9,20 +9,20 @@ class SNP:
 
     # constructor, sets all initial instance field values
     def __init__(self):
-        basepair = 0
-        chromosome = 0
-        b_standard = 0.00
-        b_star = 0.00
-        raw_p = 0.00
-        adjusted_p = ""
-        description = ""
-        old_identifier = "" # snnfold_X
-        c_variance = 0.00
-        t_variance = 0.00
-        transformed_c_variance = 0.0
-        transformed_t_variance = 0.0
-        threshold_value = 0.0
-        gene = ""
-        originalindex = 0
-        rnaseqp = ""
-        fdr_rank = 0
+        self.basepair = 0
+        self.chromosome = 0
+        self.b_standard = 0.00
+        self.b_star = 0.00
+        self.raw_p = 0.00
+        self.adjusted_p = ""
+        self.description = ""
+        self.old_identifier = "" # snnfold_X
+        self.c_variance = 0.00
+        self.t_variance = 0.00
+        self.transformed_c_variance = 0.0
+        self.transformed_t_variance = 0.0
+        self.threshold_value = 0.0
+        self.gene = ""
+        self.originalindex = 0
+        self.rnaseqp = ""
+        self.fdr_rank = 0

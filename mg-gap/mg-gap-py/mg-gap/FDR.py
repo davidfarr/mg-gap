@@ -16,30 +16,30 @@ Need to look up python equivalents of C# list operations:
     .Count()
 """
 # class imports
-import SNP
+# may need to import snp class?
 
-class FDR:
-    def process(bs_list, fdr_selected):
+#class FDR:
+def process(bs_list, fdr_selected):
        
-        sorted_list = bs_list.sort(key = lambda x: x.raw_p)
+    sorted_list = bs_list.sort(key = lambda x: x.raw_p)
         
-        rank_assignment = 1
-        for snp in sorted_list:
-            snp.fdr_rank = rank_assignment
-            rank_assignment += 1
+    rank_assignment = 1
+    for snp in sorted_list:
+        snp.fdr_rank = rank_assignment
+        rank_assignment += 1
          
-        num_window = rank_assignment / 2
-        for snp in sorted_list:
-            snp.threshhold_value = (fdr_selected * snp.fdr_rank) / num_window 
+    num_window = rank_assignment / 2
+    for snp in sorted_list:
+        snp.threshhold_value = (fdr_selected * snp.fdr_rank) / num_window 
 
-        bs_capacity = len(bs_list)
-        for i in range(0, len(bs_list)):
-            bs_list[i].threshold_value = fdr_selected * (i + 1) / (bs_capacity / 2)
+    bs_capacity = len(bs_list)
+    for i in range(0, len(bs_list)):
+        bs_list[i].threshold_value = fdr_selected * (i + 1) / (bs_capacity / 2)
 
-        # TEST
-        print("\n%s SNPs removed below FDR threshold leaving %s" % (list(filter((raw_p > threshold_value).__ne__, sorted_list)), len(sorted_list)) )
+    # TEST
+    print("\n%s SNPs removed below FDR threshold leaving %s" % (list(filter((raw_p > threshold_value).__ne__, sorted_list)), len(sorted_list)) )
 
-        # Now show the sig b*
-        print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda x: x.b_star))
+    # Now show the sig b*
+    print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda x: x.b_star))
 
-        return sorted_list # return a list of SNPs
+    return sorted_list # return a list of SNPs
