@@ -276,7 +276,7 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
                 break
 
     print ("Degrees of freedom: ", m)
-    cIQR = percentiles[jstar][2] - percentiles[jstar][0] #TODO error here
+    cIQR = percentiles[jstar][2] - percentiles[jstar][0] # TODO error here
     sigB = (n75 - n25) * (2 * m)**0.5 / cIQR
     print("cIQR %s \nsigB %s" % (cIQR, sigB))
 
@@ -313,7 +313,9 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
         out3.write(midpoint + '\t' + str(bx) + '\t' + str(bs) + '\t' + str(p) + '\n')
         
     # TODO ask if we want to write the test data from snp window thingymabob?
-        
+    # Allows to keep track of whole window, otherwise losing 66 % of window details
+    # Yes do this, see C# code. 
+       
     # Remove all where there is no b* i.e. b_star is less than or equal to 0        
     list(filter((b_star <= 0).__ne__, snploc))     
         

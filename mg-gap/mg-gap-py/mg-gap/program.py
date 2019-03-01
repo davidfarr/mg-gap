@@ -6,7 +6,8 @@ import subprocess # for running an R script
 import VCF_Analyzer
 import FDR
 
-
+# NOTE don't want b values of over about 400.
+# Want calculations to be with in 5 significant figures.
 
 # STEP 1 ----------
 #  - open the vcf and chisq filepaths
