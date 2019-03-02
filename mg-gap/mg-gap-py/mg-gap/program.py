@@ -31,7 +31,7 @@ write_results = open("B1_new.txt", "w+")
 write_results.write("CHR\tBP\tB\n")
 snp_list = VCF_Analyzer.SNP_list(1, vcf_path, chisq_path)
 for snp in snp_list:
-    write_results.write("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard + "\n")
+    write_results.write("" + snp.chromosome + '\t' + snp.basepair + '\t' + snp.b_standard + "\n")
 elapsed_time = time.time() - start_time
 print("B processing time: ", elapsed_time)
 
@@ -103,14 +103,14 @@ if median > 0:
     fdr_input = 0.05
     print("Running FDR analysis at ", fdr_input, "...")
     
-    fdrlist = FDR.Process(snpList, fdr_input)
+    fdrlist = FDR.process(snpList, fdr_input)
 
     # Save this fdrlist to a "tab" separated values, use a .csv, file with headers 
     # TODO this is the same code as in step 2 - good candidate for a write snp list method
     write_results = open("FDR_analysis.txt", "w+")
     write_results.write("CHR\tBP\tB\n")
     for snp in fdrlist:
-        write_results.write("" + snp.Chromosome + '\t' + snp.Basepair + '\t' + snp.B_standard + "\n")
+        write_results.write("" + snp.chromosome + '\t' + snp.basepair + '\t' + snp.b_standard + "\n")
     elapsed_time = time.time() - start_time
     print("Sort FDR processing time: ", elapsed_time)
 

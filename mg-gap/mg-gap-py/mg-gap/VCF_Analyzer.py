@@ -45,6 +45,7 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
 
     outkk = open("outkkTEST.yut", "w") # left this in, but no current use in application TODO ask about this
     out0 = open("Results" + str(6) + ".txt", "w") #a more verbose out3
+    out3 = open("B" + str(6) + ".txt", "w")
 
     # STEP 2: Enumerate chisq file
     print("Assembling chi square apparatus...")
@@ -57,8 +58,8 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
         # bs.append(float(cols[1]))
         for j in range(9):
             percentiles[line_idx].append(float(cols[j+1]))
-    rx = (percentiles[line_idx][2] + percentiles[line_idx][0] - 2 * percentiles[line_idx][1]) / (percentiles[line_idx][2] - percentiles[line_idx][0])
-    bs.append(rx)
+        rx = (percentiles[line_idx][2] + percentiles[line_idx][0] - 2 * percentiles[line_idx][1]) / (percentiles[line_idx][2] - percentiles[line_idx][0])
+        bs.append(rx)
 
     # STEP 3: Evaluate contents of each line of the VCF input file            
     for line_idx, line in enumerate(vcfpath):
@@ -245,20 +246,20 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
                     
                 new_window.snps.append(output_snps[k]) # add the snp to the list
             
-        # from C# code
-        all_window_SNPs.append(new_window) # TEST
-        output_snps[k].b_standard = b
-        snploc.append(output_snps[k]) # adds the last snp of the window with value b
+            # from C# code
+            all_window_SNPs.append(new_window) # TEST
+            output_snps[k].b_standard = b
+            snploc.append(output_snps[k]) # adds the last snp of the window with value b
 
-        Bloc.append(Locations[k])
-        Braw.append(b)
+            Bloc.append(Locations[k])
+            Braw.append(b)
             
     ranked_B = sorted(Braw)
 
     # Percentiles
-    n25 = ranked_B[int(len(Braw)/4)]
-    n50 = ranked_B[int(len(Braw)/2)]
-    n75 = ranked_B[int(3 * len(Braw)/4)]
+    n25 = ranked_B[int(len(Braw) / 4)]
+    n50 = ranked_B[int(len(Braw) / 2)]
+    n75 = ranked_B[int(3 * len(Braw) / 4)]
 
     print("B Percentiles: ", n25, n50, n75)
     b_skew = (n75 + n25 - 2 * n50) / (n75 - n25)
@@ -266,7 +267,7 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
 
     m = -1
     if b_skew > bs[0]:
-        print("Too much skew")
+        print("Too much skew") # in this if statement, jstar never gets initialized, this is a problem for the program to continue, need to add error checking here
 
     else:
         for j in range(1, len(bs)):
@@ -317,7 +318,9 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
     # Yes do this, see C# code. 
        
     # Remove all where there is no b* i.e. b_star is less than or equal to 0        
-    list(filter((b_star <= 0).__ne__, snploc))     
-        
+    #finalSNPlist = list(filter((snploc.b_star <= 0).__ne__, snploc))     
+     
+    finalSNPlist = [snp for snp in snploc if snp.b_star <= 0]
+      
     print("VCF analysis complete.")
-    return snploc # return a list of SNPs
+    return finalSNPlist # return a list of SNPs
