@@ -21,7 +21,7 @@ Need to look up python equivalents of C# list operations:
 #class FDR:
 def process(bs_list, fdr_selected):
        
-    sorted_list = bs_list.sort(key = lambda x: x.raw_p)
+    sorted_list = sorted(bs_list, key = lambda snp: snp.raw_p)
         
     rank_assignment = 1
     for snp in sorted_list:
@@ -37,9 +37,13 @@ def process(bs_list, fdr_selected):
         bs_list[i].threshold_value = fdr_selected * (i + 1) / (bs_capacity / 2)
 
     # TEST
-    print("\n%s SNPs removed below FDR threshold leaving %s" % (list(filter((raw_p > threshold_value).__ne__, sorted_list)), len(sorted_list)) )
+    # remove SNPs that have a raw_p value > threshold_value   
+    pre_removal_length = len(sorted_list)
+    sorted_list = [snp for snp in sorted_list if snp.raw_p <= snp.threshold_value]
+    
+    print("\n%s SNPs removed below FDR threshold leaving %s" % (pre_removal_length, len(sorted_list)) )
 
     # Now show the sig b*
-    print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda x: x.b_star))
+    print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda snp: snp.b_star))
 
     return sorted_list # return a list of SNPs

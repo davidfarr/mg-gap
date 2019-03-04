@@ -320,7 +320,7 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
     # Remove all where there is no b* i.e. b_star is less than or equal to 0        
     #finalSNPlist = list(filter((snploc.b_star <= 0).__ne__, snploc))     
      
-    finalSNPlist = [snp for snp in snploc if snp.b_star <= 0]
+    finalSNPlist = [snp for snp in snploc if snp.b_star > 0]
       
     print("VCF analysis complete.")
     return finalSNPlist # return a list of SNPs

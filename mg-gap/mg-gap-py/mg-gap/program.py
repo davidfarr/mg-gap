@@ -31,7 +31,7 @@ write_results = open("B1_new.txt", "w+")
 write_results.write("CHR\tBP\tB\n")
 snp_list = VCF_Analyzer.SNP_list(1, vcf_path, chisq_path)
 for snp in snp_list:
-    write_results.write("" + snp.chromosome + '\t' + snp.basepair + '\t' + snp.b_standard + "\n")
+    write_results.write("" + str(snp.chromosome) + '\t' + str(snp.basepair) + '\t' + str(snp.b_standard) + "\n") 
 elapsed_time = time.time() - start_time
 print("B processing time: ", elapsed_time)
 
@@ -42,10 +42,10 @@ print("B processing time: ", elapsed_time)
 #  - GenWin creates a file called "splinewindows.txt"
 start_time = time.time()
 print("Beginning R execution at", start_time)
-# NOTE for testing: enter correct path
-# TODO need to test this R call. Make sure Rscript is running from correct directory
-rscript_path = "C:\Users\Heathro\mg-gap\mg-gap\mg-gap-py\mg-gap\support_files\GenWin_script_12_29_2016.R"
-subprocess.call(["Rscript", rscript_path])
+
+rcommand_path = "C:/Program Files/R/R-3.5.1/bin/Rscript.exe"
+rscript_path = "C:/Users/Heathro/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/GenWin_script_12_29_2016.R"
+subprocess.call([rcommand_path, rscript_path])
 elapsed_time = time.time() - start_time
 print("R exited successfully.\nRun time: ", elapsed_time)
  
@@ -65,7 +65,7 @@ Guide to splinewindows format
    * 5 = W statistic
    * first row is headers, skip
 """
-splinepath = "N:/app dev/scoville research/program files/github repo/mg-gap/mg-gap/mg-gap/bin/Debug/splinewindows.txt";
+splinepath = "C:/Users/Heathro/mg-gap/mg-gap/mg-gap-py/mg-gap/splinewindows.txt";
 # TODO add some error checking code, like try/catch?
 print("GenWin file found, obtaining median window value...")
 windows = []
@@ -73,15 +73,18 @@ with open(splinepath, "r") as sp:
     sp.readline() # read past the header line
     for line in sp:
         if ("CHRcol" not in line):
-            cols = []
-            cols.append(line.replace("\n", "").split("\t"))
-            windows.append(int(cols[3]))
+            cols = line.replace("\n", "").split("\t")
+            windows.append(int(cols[3])) 
 if len(windows) == 0:
     print("No window sizes to calculate!")
 else:
      windows.sort()
      middle = len(windows) // 2
-     median = float(windows[middle]) if (len(windows) != 0) else (float(windows[middle]) + float(windows[middle - 1])) / 2.0
+     if (len(windows) % 2 != 0) :
+        median = float(windows[middle]) 
+     else:
+        median = (float(windows[middle]) + float(windows[middle - 1])) / 2.0
+     print("The median widow size is: ", median)
      # TODO question: why are we making median a double/float if we are casting it
      # back into an integer in the next step
 
@@ -90,6 +93,7 @@ else:
 #  - feed the median value back through b processing, then b* 
 #  - need to hold on to the data for FDR 
 #  - make a tab .csv
+#median = 6 # TODO remove this - for testing only
 if median > 0:
     snpList = VCF_Analyzer.SNP_list(int(median), vcf_path, chisq_path)
     print("Re-analyzing for B* based on median window size ", median, " @ ", time.ctime)
@@ -110,7 +114,7 @@ if median > 0:
     write_results = open("FDR_analysis.txt", "w+")
     write_results.write("CHR\tBP\tB\n")
     for snp in fdrlist:
-        write_results.write("" + snp.chromosome + '\t' + snp.basepair + '\t' + snp.b_standard + "\n")
+        write_results.write("" + str(snp.chromosome) + '\t' + str(snp.basepair) + '\t' + str(snp.b_standard) + "\n")
     elapsed_time = time.time() - start_time
     print("Sort FDR processing time: ", elapsed_time)
 
