@@ -15,7 +15,7 @@ library(GenWin) #for spline-based window analysis
 #Note: B1.txt is output from JK's python script
 #setwd("N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
 #setwd("C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
-setwd("C:\\Users\\Heathro\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
+setwd("D:\\MG_GAP\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
 
 file <- read.table("B1_new.txt", header=TRUE)
   
@@ -49,18 +49,21 @@ file$CHR <- as.numeric(file$CHR)
 windowsList <- list()
 
 for(input in CHRnames){
-  
+  print("doing windows")
   #take data from a single chromosome and make sure it is ordered by base pair
   window1 <- subset(file, CHR==input)
   window1 <- window1[order(window1$BP),]
   
+  print("doing spline")
   #use GenWin program to identify windows.  We may want to try different smoothness levels
   spline <- splineAnalyze(Y=window1$B,map=window1$BP,smoothness=100, plotRaw=TRUE,plotWindows=TRUE,method=4)
   
+  print("adding columns to spline window data")
   #add a column to the spline$windowData output to identify the chromosome under consideration
   CHRcol <- rep(input,dim(spline$windowData)[1])
   spline$windowData <- cbind(CHRcol,spline$windowData)
   
+  print("adding apline window data to windows list")
   #add the output to a list of output from all chromosomes
   windowsList[[input]] <- spline$windowData
 }

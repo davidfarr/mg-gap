@@ -206,7 +206,7 @@ def SNP_list(window, vcfpath, chisq_path): # need to add keyword "self" if addin
 
     for k in range(0, len(z_std)):
         vdiv = Var_neutral + accepted_snps[k][1] + accepted_snps[k][2]
-        z_std[k] = z_std[k] / (vdiv**0.5)
+        z_std[k] = z_std[k] / (abs(vdiv)**0.5)    # NOTE do we need to add abs() here? 3/10/19
 
     ranked_z = sorted(z_std)
     n25 = ranked_z[int(num_snps / 4)]
