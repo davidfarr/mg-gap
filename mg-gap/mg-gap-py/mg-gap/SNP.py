@@ -1,9 +1,8 @@
 """
 Class SNP
 
-Description: Sets up fields for each instantiation of a SNP. Getters 
-and setters are accessed by the instance of the class. 
-No private variables.
+Description: Sets up fields for each instantiation of a SNP. 
+
 """
 class SNP:
 

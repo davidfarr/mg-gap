@@ -1,4 +1,9 @@
-# May need to import SNP class
+"""
+Class Window
+
+Description: Keeps track of windows to find median window value to analyze DNA
+
+"""
 
 class Window:
     # constructor, sets all initial instance field values

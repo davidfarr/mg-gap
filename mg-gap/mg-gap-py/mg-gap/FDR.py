@@ -15,8 +15,6 @@ Need to look up python equivalents of C# list operations:
     .ToList()
     .Count()
 """
-# class imports
-# may need to import snp class?
 
 #class FDR:
 def process(bs_list, fdr_selected):

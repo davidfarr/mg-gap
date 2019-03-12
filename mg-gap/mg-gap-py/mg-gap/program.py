@@ -6,8 +6,6 @@ import math
 
 
 # import classes
-import VCF_Analyzer
-import FDR
 import SNP
 import Window
 
@@ -15,26 +13,30 @@ import Window
 # NOTE don't want b values of over about 400.
 # Want calculations to be with in 5 significant figures.
 
-# ------------------------------------- BEGIN VCF ANALYZER --------------------------------------------- #
-
-"""
-Function: SNP_list (aka VCF_Analyzer)
-
-Description: Reads the VCF. Create a list of SNP's with their info
-in a method and return the "list" of SNPs back to the main program file.
-
-NOTES: 
- - it is very long. Maybe we can break it up into separate, smaller methods.
- - when translating, replaced S with window, src with vcfpath, in1 with chisq_path
- - maybe move some of the STEPS into their own functions for ease of reading and testing
- - a couple counters, total_counter and skip_counter are used in the C#, do we want to put this
- back in?
- - there's a note at the end of this code too, but do we want to write the test data from snp window?
-"""
+    # ------------------------------------- BEGIN VCF ANALYZER --------------------------------------------- #
   
-def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if adding actual class properties
-        
-    # STEP 1: Set up counters, lists, and variables
+def VCF_Analyzer(window, vcfpath, chisq_path):
+    """
+    Function: VCF_Analyzer
+
+    Description: Reads the VCF. Create a list of SNP's with their info
+    in a method and return the "list" of SNPs back to the main program file.
+
+    @param window (integer): the median window value to look at SNPs
+    @param vcfpath (string): file path to vcf file
+    @param chisq_path (string): file path to chi squared file
+    @return finalSNPlist (SNP list): a list of SNP objects with b* values
+
+    DEVELOPMENT NOTES: 
+     - it is very long. Maybe we can break it up into separate, smaller methods.
+     - when translating, replaced S with window, src with vcfpath, in1 with chisq_path
+     - maybe move some of the STEPS into their own functions for ease of reading and testing
+     - a couple counters, total_counter and skip_counter are used in the C#, do we want to put this
+     back in?
+     - there's a note at the end of this code too, but do we want to write the test data from snp window?
+    """
+    # STEP 1 ----------
+    # Set up counters, lists, and variables
     LineID = []                 # For holding column names (headers) from VCF file
     Locations = []              # ?
     zraw = []                   # Holds Z scores from divergence
@@ -55,7 +57,8 @@ def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if a
     out0 = open("Results" + str(6) + ".txt", "w") #a more verbose out3
     out3 = open("B" + str(6) + ".txt", "w")
 
-    # STEP 2: Enumerate chisq file
+    # STEP 2 ----------
+    # Enumerate chisq file
     print("Assembling chi square apparatus...")
     bs = [] 
     df = []
@@ -69,7 +72,8 @@ def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if a
         rx = (percentiles[line_idx][2] + percentiles[line_idx][0] - 2 * percentiles[line_idx][1]) / (percentiles[line_idx][2] - percentiles[line_idx][0])
         bs.append(rx)
 
-    # STEP 3: Evaluate contents of each line of the VCF input file            
+    # STEP 3 ----------
+    # Evaluate contents of each line of the VCF input file          
     for line_idx, line in enumerate(vcfpath):
         cols = line.replace('\n', '').split('\t') # Get rid of newlines and empty spaces, then use the tab delimiter for array
         # Should be contig row... these list contigs and have no data for use
@@ -185,7 +189,8 @@ def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if a
                         if line_idx % 100000 == 0:
                             print(cols[0], line_idx)
 
-    # STEP 4: Report on VCF file evaluation
+    # STEP 4 ----------
+    # Report on VCF file evaluation
     print("Outcomes: ", outcomes)
     print("Included: Number of SNPs ", num_snps)
     print("Accepted: Number of SNPs ", len(output_snps)) # from C# code        
@@ -275,7 +280,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if a
 
     m = -1
     if b_skew > bs[0]:
-        print("Too much skew") # in this if statement, jstar never gets initialized, this is a problem for the program to continue, need to add error checking here
+        print("Too much skew")
 
     else:
         for j in range(1, len(bs)):
@@ -285,7 +290,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if a
                 break
 
     print ("Degrees of freedom: ", m)
-    cIQR = percentiles[jstar][2] - percentiles[jstar][0] # TODO error here
+    cIQR = percentiles[jstar][2] - percentiles[jstar][0] 
     sigB = (n75 - n25) * (2 * m)**0.5 / cIQR
     print("cIQR %s \nsigB %s" % (cIQR, sigB))
 
@@ -321,13 +326,10 @@ def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if a
 
         out3.write(midpoint + '\t' + str(bx) + '\t' + str(bs) + '\t' + str(p) + '\n')
         
-    # TODO ask if we want to write the test data from snp window thingymabob?
+    # TODO write the test data from snp window
     # Allows to keep track of whole window, otherwise losing 66 % of window details
-    # Yes do this, see C# code. 
        
-    # Remove all where there is no b* i.e. b_star is less than or equal to 0        
-    #finalSNPlist = list(filter((snploc.b_star <= 0).__ne__, snploc))     
-     
+    # Remove all where there is no b* i.e. b_star is less than or equal to 0      
     finalSNPlist = [snp for snp in snploc if snp.b_star > 0]
       
     print("VCF analysis complete.")
@@ -335,6 +337,54 @@ def VCF_Analyzer(window, vcfpath, chisq_path): # need to add keyword "self" if a
 
 
 # ------------------------------------- END VCF ANALYZER ----------------------------------------------- #
+
+
+# ------------------------------------- BEGIN FDR ANALYSIS --------------------------------------------- #
+
+def process(bs_list, fdr_selected):
+    """
+    Function: FDR
+
+    Description: 
+    The FDR process is:
+        1. Sort B* list by p-value
+        2. Add new property FDR where FDR = 0.1 * index of the ranked SNP / (count of SNPs in the file / 2)
+        3*. FDR can be changed... 0.1 above is FDR of 10 and 0.05 is FDR 5
+
+    @param bs_list (SNP object list): the list of SNPs with b* values
+    @param fdr_selected - TODO need to learn more about FDR
+    @return sorted_list (SNP object list): a list of SNPs with significant b* values
+
+    Editing thoughts for later: TODO request to use FDR analyzer in R instead.
+    """  
+    sorted_list = sorted(bs_list, key = lambda snp: snp.raw_p)
+        
+    rank_assignment = 1
+    for snp in sorted_list:
+        snp.fdr_rank = rank_assignment
+        rank_assignment += 1
+         
+    num_window = rank_assignment / 2
+    for snp in sorted_list:
+        snp.threshhold_value = (fdr_selected * snp.fdr_rank) / num_window 
+
+    bs_capacity = len(bs_list)
+    for i in range(0, len(bs_list)):
+        bs_list[i].threshold_value = fdr_selected * (i + 1) / (bs_capacity / 2)
+
+    # TEST
+    # remove SNPs that have a raw_p value > threshold_value   
+    pre_removal_length = len(sorted_list)
+    sorted_list = [snp for snp in sorted_list if snp.raw_p <= snp.threshold_value]
+    
+    print("\n%s SNPs removed below FDR threshold leaving %s" % (pre_removal_length, len(sorted_list)) )
+
+    # Now show the sig b*
+    print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda snp: snp.b_star)) # TODO this prints out an address
+
+    return sorted_list # return a list of SNPs
+
+# ------------------------------------ END FDR ANALYSIS ------------------------------------------------ #
 
 # ------------------------------------ BEGIN MAIN ------------------------------------------------------ #
 
@@ -443,7 +493,7 @@ if median > 0:
     fdr_input = 0.05
     print("Running FDR analysis at ", fdr_input, "...")
     
-    fdrlist = FDR.process(snpList, fdr_input)
+    fdrlist = process(snpList, fdr_input)
 
     # Save this fdrlist to a "tab" separated values, use a .csv, file with headers 
     # TODO this is the same code as in step 2 - good candidate for a write snp list method

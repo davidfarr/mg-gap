@@ -22,16 +22,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FDR.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Window.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SNP.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="VCF_Analyzer.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="program.py" />
