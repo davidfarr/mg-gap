@@ -48,12 +48,9 @@ def VCF_Analyzer(window, vcfpath, chisq_path):
     trimmed_snps = []           # from C# code, for after B*
         
     min_reads = 20              # User may define option for this - seems standard but may need to be adjusted if data is nanopore sequenced... will revisit.
-    depth_cc = 0                # ?
-    raw_read_count = 0          # ?
     Var_snp_specific = 0.0      # ?
     num_snps = 0                # Number of all SNPs counter, not just accepted SNPs
 
-    outkk = open("outkkTEST.yut", "w") # left this in, but no current use in application TODO ask about this
     out0 = open("Results" + str(6) + ".txt", "w") #a more verbose out3
     out3 = open("B" + str(6) + ".txt", "w")
 
@@ -91,6 +88,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path):
             chromosome = cols[0]        # snnafold_x
             chromosome = chromosome[9:] # x (we got rid of everything so it's just the number)
                 
+            # TODO here, put some user-defined variables for chomosome range. if lowerlimit <= chromosome or chromosome <= upperlimit
             if int(chromosome) < 15:    # Many more contigs than chromosomes - we're only looking between chr 1 and 14 for meaningful data.
                 scaff = cols[0].split('_')
                 position = int(cols[1]) # grab the base pair
@@ -141,7 +139,6 @@ def VCF_Analyzer(window, vcfpath, chisq_path):
                             qT_hat = qT[0] / qT[1]
                             if (qC_hat != 0 and qC_hat != 1 and qT_hat != 0 and qT_hat != 1):
                                 # columns: scaffold, position, ref allele count 1, total count 1,ref allele count 2, total count 2
-                                outkk.write(cols[0] + "\t"+cols[1] + "\t" + str(qC[0]) + "\t"+str(qC[1]) + "\t"+str(qT[0]) + "\t" + str(qT[1]) + "\n")
                                 outcomes[2] += 1
                                 Locations.append(cols[0] + "_" + cols[1])
                                 num_snps += 1
@@ -432,7 +429,6 @@ print("R exited successfully.\nRun time: ", elapsed_time)
 # STEP 4 ----------
 #  - calculate the median from the "splinewindows.txt" file created by GenWin
 #  - run the b processing at that window and then b* processing 
-#  - then move to java program?
 #  - check if we recognize that the file has now been put there
 """
 Guide to splinewindows format
@@ -445,27 +441,27 @@ Guide to splinewindows format
    * first row is headers, skip
 """
 splinepath = "D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/splinewindows.txt";
-# TODO add some error checking code, like try/catch?
 print("GenWin file found, obtaining median window value...")
 windows = []
-with open(splinepath, "r") as sp:
-    sp.readline() # read past the header line
-    for line in sp:
-        if ("CHRcol" not in line):
-            cols = line.replace("\n", "").split("\t")
-            windows.append(int(cols[3])) 
-if len(windows) == 0:
-    print("No window sizes to calculate!")
-else:
-     windows.sort()
-     middle = len(windows) // 2
-     if (len(windows) % 2 != 0) :
-        median = windows[middle]
-     else:
-        median = (windows[middle] + windows[middle - 1]) // 2
-     print("The median widow size is: ", median)
-     # TODO question: why are we making median a double/float if we are casting it
-     # back into an integer in the next step
+try:
+    with open(splinepath, "r") as sp:
+        sp.readline() # read past the header line
+        for line in sp:
+            if ("CHRcol" not in line):
+                cols = line.replace("\n", "").split("\t")
+                windows.append(int(cols[3])) 
+    if len(windows) == 0:
+        print("No window sizes to calculate!")
+    else:
+        windows.sort()
+        middle = len(windows) // 2
+        if (len(windows) % 2 != 0) :
+            median = windows[middle]
+        else:
+            median = (windows[middle] + windows[middle - 1]) // 2
+        print("The median widow size is: ", median)
+except:
+    print("Error opening splinewindows.txt")
 
 
 # STEP 5 ----------

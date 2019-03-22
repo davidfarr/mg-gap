@@ -4,12 +4,10 @@
 #download and install packages the first time
 install.packages("tidyr")
 install.packages("GenWin")
-install.packages("ggplot2")
 
 #load packages
 library(tidyr)  #for pre-processing; contains function separate
 library(GenWin) #for spline-based window analysis
-#library(ggplot2) #not necessary yet, but we may want to add graphing later 
 
 #Set appropriate working directory and read in B1.txt file containing B* values based on a window size of 1
 #Note: B1.txt is output from JK's python script
@@ -32,7 +30,7 @@ file <- read.table("B1_new.txt", header=TRUE)
 #set CHR and BP to numeric mode, and then trim all data not associated with scaffolds 1-14 (note to Ali: any useful data in CHR 15-18? ask JK)
 file$CHR <- as.numeric(file$CHR)
 file$BP <- as.numeric(file$BP)
-file <- subset(file, CHR<15)
+#file <- subset(file, CHR<15)
 
 #set CHR back to factor mode in order to identify the chromosomes in the .txt file
 file$CHR <- as.factor(file$CHR)
@@ -56,14 +54,14 @@ for(input in CHRnames){
   
   print("doing spline")
   #use GenWin program to identify windows.  We may want to try different smoothness levels
-  spline <- splineAnalyze(Y=window1$B,map=window1$BP,smoothness=100, plotRaw=TRUE,plotWindows=TRUE,method=4)
+  spline <- splineAnalyze(Y=window1$B,map=window1$BP,smoothness=100, plotRaw=FALSE,plotWindows=FALSE,method=4)
   
   print("adding columns to spline window data")
   #add a column to the spline$windowData output to identify the chromosome under consideration
   CHRcol <- rep(input,dim(spline$windowData)[1])
   spline$windowData <- cbind(CHRcol,spline$windowData)
   
-  print("adding apline window data to windows list")
+  print("adding spline window data to windows list")
   #add the output to a list of output from all chromosomes
   windowsList[[input]] <- spline$windowData
 }
