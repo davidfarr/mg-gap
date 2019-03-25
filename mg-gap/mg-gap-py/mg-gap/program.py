@@ -402,7 +402,6 @@ except:
 
 # STEP 2 ----------
 #  - Get chromosome range for reading vcf file
-#  - if no arguments set, read all chromosomes
 if len(sys.argv) == 3:
 	lowerlimit = int(sys.argv[1])
 	upperlimit = int(sys.argv[2])
