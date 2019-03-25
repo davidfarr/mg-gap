@@ -3,6 +3,7 @@ import time
 import subprocess # for running an R script
 import random
 import math
+import sys # for getting command line arguments for chromosome # range 
 
 
 # import classes
@@ -15,7 +16,7 @@ import Window
 
     # ------------------------------------- BEGIN VCF ANALYZER --------------------------------------------- #
   
-def VCF_Analyzer(window, vcfpath, chisq_path):
+def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     """
     Function: VCF_Analyzer
 
@@ -37,7 +38,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path):
     """
     # STEP 1 ----------
     # Set up counters, lists, and variables
-    LineID = []                 # For holding column names (headers) from VCF file
+    # LineID = []                 # For holding column names (headers) from VCF file, TODO remove - NOT USED
     Locations = []              # ?
     zraw = []                   # Holds Z scores from divergence
     accepted_snps = []          # Number of accepted SNPs    
@@ -74,22 +75,25 @@ def VCF_Analyzer(window, vcfpath, chisq_path):
     for line_idx, line in enumerate(vcfpath):
         cols = line.replace('\n', '').split('\t') # Get rid of newlines and empty spaces, then use the tab delimiter for array
         # Should be contig row... these list contigs and have no data for use
-        if len(cols) < 2:  # Sorts out any 2-col contigs
-            continue # Skip the header row
-        # This is indicative of the first row of the actual data set. Print out every bam file name
-        elif cols[0] == "#CHROM":       # this is the header row (but not the first row)
+        if len(cols) < 2: 
+            continue # Skip the meta section (file description, definitions, contig info, etc)
+        elif cols[0] == "#CHROM":       # this is the header row for the variant sample data
             for i in range(len(cols)):
-                print(i,cols[i])
-                if i > 8:
-                    LineID.append(cols[i])
-        else: # this is if len(cols) >= 2, NOTE in C# code this is just length > 2
-               
+                print(i, cols[i])
+                
+                # TODO remove this, LineID never used.
+                #if i > 8:
+                #    LineID.append(cols[i]) # saves the sample header name (eg. 767.sorted.bam, CA.rmdup.bam CB.rmdup.bam, S.rmdup.bam, TA.rmdup.bam, TB.rmdup.bam
+
+        else:              
             # Get the actual chromosome number out of the first column
             chromosome = cols[0]        # snnafold_x
             chromosome = chromosome[9:] # x (we got rid of everything so it's just the number)
-                
+
+
             # TODO here, put some user-defined variables for chomosome range. if lowerlimit <= chromosome or chromosome <= upperlimit
-            if int(chromosome) < 15:    # Many more contigs than chromosomes - we're only looking between chr 1 and 14 for meaningful data.
+            #if int(chromosome) < 15:    # Many more contigs than chromosomes - we're only looking between chr 1 and 14 for meaningful data.
+            if lowerlimit <= int(chromosome) and int(chromosome) <= upperlimit:   
                 scaff = cols[0].split('_')
                 position = int(cols[1]) # grab the base pair
                 ref_base = cols[3]      # the reference base allele
@@ -104,7 +108,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path):
                     C_dat = []
                     T_count = 0
                     T_dat = []
-
+                                                        # TODO address skipping the 767 bam for more general purpose
                     for j in range(10, len(cols)):      # ali_w_767.vcf... keep in mind that the data *structure* difference between ali.vcf and w/767 is the 767 bam file is the first bam column index, so must add +1 to all the indexes that referenced bam file cols. Skip 767 which is column 10.
                         info = cols[j].split(':')       # split the info column that has AD on col[1]
                         if len(info) == 5 and (j < 13): # ali_w_767.vcf
@@ -394,8 +398,20 @@ try:
 except:
     print("Error opening file paths")
 
-
 # STEP 2 ----------
+#  - Get chromosome range for reading vcf file
+#  - if no arguments set, read all chromosomes
+print len(sys.argv)
+#if len(sys.argv) < 2:
+#    lowerlimit = 1
+#    upperlimit = 1260
+#elif len(sys.argv) == 3:
+lowerlimit = int(sys.argv[1])
+upperlimit = int(sys.argv[2])
+#else:
+#    print("Invalid arguments")
+
+# STEP 3 ----------
 #  - run the vcf parser to determine b value for a SNP window of 1 (s = 1) 
 #  - creates a snp list file called B1_new.txt, which genwin will read later
 start_time = time.time()
@@ -403,7 +419,7 @@ print("Starting B processing at :", start_time)
 
 write_results = open("B1_new.txt", "w+")
 write_results.write("CHR\tBP\tB\n")
-snp_list = VCF_Analyzer(1, vcf_path, chisq_path)
+snp_list = VCF_Analyzer(1, vcf_path, chisq_path, lowerlimit, upperlimit)
 for snp in snp_list:
     write_results.write("" + str(snp.chromosome) + '\t' + str(snp.basepair) + '\t' + str(snp.b_standard) + "\n") 
 elapsed_time = time.time() - start_time
@@ -412,7 +428,7 @@ write_results.close()
 vcf_path.close()
 chisq_path.close()
 
-# STEP 3 ----------
+# STEP 4 ----------
 #  - calls the R script, GenWin 
 #  - this reads the B1_new.txt file that was created above
 #  - GenWin creates a file called "splinewindows.txt"
@@ -426,7 +442,7 @@ elapsed_time = time.time() - start_time
 print("R exited successfully.\nRun time: ", elapsed_time)
  
 
-# STEP 4 ----------
+# STEP 5 ----------
 #  - calculate the median from the "splinewindows.txt" file created by GenWin
 #  - run the b processing at that window and then b* processing 
 #  - check if we recognize that the file has now been put there
@@ -464,7 +480,7 @@ except:
     print("Error opening splinewindows.txt")
 
 
-# STEP 5 ----------
+# STEP 6 ----------
 #  - reopen vcf and chisq paths
 #  - feed the median value back through b processing, then b* 
 #  - need to hold on to the data for FDR 
@@ -477,7 +493,7 @@ except:
     print("Error opening file paths")
 
 if median > 0:
-    snpList = VCF_Analyzer(median, vcf_path, chisq_path)
+    snpList = VCF_Analyzer(median, vcf_path, chisq_path, lowerlimit, upperlimit)
     print("Re-analyzing for B* based on median window size ", median, " @ ", time.ctime)
 
     start_time = time.time()
