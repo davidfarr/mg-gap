@@ -381,7 +381,7 @@ def process(bs_list, fdr_selected):
     print("\n%s SNPs removed below FDR threshold leaving %s" % (pre_removal_length, len(sorted_list)) )
 
     # Now show the sig b*
-    print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda snp: snp.b_star)) # TODO this prints out an address
+    print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda snp: snp.b_star)) # TODO this prints out an address, needs to do a string
 
     return sorted_list # return a list of SNPs
 
@@ -393,23 +393,21 @@ def process(bs_list, fdr_selected):
 #  - open the vcf and chisq filepaths
 #  - NOTE for testing, enter the correct paths
 try:
-    vcf_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/test_files/REDUCED_ali.vcf", "rU")
-    chisq_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/chisq.txt", "rU")
+    # vcf_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/test_files/REDUCED_ali.vcf", "rU") TODO remove U, deprecated 
+	vcf_path = open("C:/Users/gammonh/Documents/GitHub/mg-gap/mg-gap/mg-gap-py/mg-gap/test_files/REDUCED_ali.vcf", "r") # Grad lab office PC
+    # chisq_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/chisq.txt", "rU") TODO remove U, deprecated
+	chisq_path = open("C:/Users/gammonh/Documents/GitHub/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/chisq.txt", "r") # Grad lab office PC
 except:
     print("Error opening file paths")
 
 # STEP 2 ----------
 #  - Get chromosome range for reading vcf file
 #  - if no arguments set, read all chromosomes
-print len(sys.argv)
-#if len(sys.argv) < 2:
-#    lowerlimit = 1
-#    upperlimit = 1260
-#elif len(sys.argv) == 3:
-lowerlimit = int(sys.argv[1])
-upperlimit = int(sys.argv[2])
-#else:
-#    print("Invalid arguments")
+if len(sys.argv) == 3:
+	lowerlimit = int(sys.argv[1])
+	upperlimit = int(sys.argv[2])
+else:
+    print("Invalid arguments for chromosome range. Please put beginning and ending chromosome numbers.")
 
 # STEP 3 ----------
 #  - run the vcf parser to determine b value for a SNP window of 1 (s = 1) 
@@ -435,8 +433,12 @@ chisq_path.close()
 start_time = time.time()
 print("Beginning R execution at", start_time)
 
-rcommand_path = "C:/Program Files/R/R-3.5.1/bin/Rscript.exe"
-rscript_path = "D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/GenWin_script_12_29_2016.R"
+# NOTE Potential Issue with calling R:
+#  - Having a hard coded path to R may be a problem for users who have installed their R in a different directory
+#  - if user has not set a mirror for their R, then an error will appear that the user is trying to install packages without setting a mirror
+rcommand_path = "C:/Program Files/R/R-3.5.1/bin/Rscript.exe" 
+#rscript_path = "D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/GenWin_script_12_29_2016.R" # Personal home PC
+rscript_path = "C:/Users/gammonh/Documents/GitHub/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/GenWin_script_12_29_2016.R" # Grad lab office PC
 subprocess.call([rcommand_path, rscript_path])
 elapsed_time = time.time() - start_time
 print("R exited successfully.\nRun time: ", elapsed_time)
@@ -456,7 +458,8 @@ Guide to splinewindows format
    * 5 = W statistic
    * first row is headers, skip
 """
-splinepath = "D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/splinewindows.txt";
+#splinepath = "D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/splinewindows.txt" # Personal home PC
+splinepath = "C:/Users/gammonh/Documents/GitHub/mg-gap/mg-gap/mg-gap-py/mg-gap/splinewindows.txt" # Grad lab office PC
 print("GenWin file found, obtaining median window value...")
 windows = []
 try:
@@ -487,8 +490,10 @@ except:
 #  - make a tab .csv
 #median = 6 # TODO remove this - for testing only
 try:
-    vcf_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/test_files/REDUCED_ali.vcf", "rU")
-    chisq_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/chisq.txt", "rU")
+    # vcf_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/test_files/REDUCED_ali.vcf", "rU") TODO remove U, deprecated
+	vcf_path = open("C:/Users/gammonh/Documents/GitHub/mg-gap/mg-gap/mg-gap-py/mg-gap/test_files/REDUCED_ali.vcf", "r") # Grad lab office PC
+    # chisq_path = open("D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/chisq.txt", "rU") TODO remove U, deprecated
+	chisq_path = open("C:/Users/gammonh/Documents/GitHub/mg-gap/mg-gap/mg-gap-py/mg-gap/support_files/chisq.txt", "r") # Grad lab office PC
 except:
     print("Error opening file paths")
 

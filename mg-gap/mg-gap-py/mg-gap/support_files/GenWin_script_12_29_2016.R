@@ -13,7 +13,8 @@ library(GenWin) #for spline-based window analysis
 #Note: B1.txt is output from JK's python script
 #setwd("N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
 #setwd("C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
-setwd("D:\\MG_GAP\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
+#setwd("D:\\MG_GAP\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
+setwd("C:\\Users\\gammonh\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
 
 file <- read.table("B1_new.txt", header=TRUE)
   
