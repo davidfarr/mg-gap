@@ -26,6 +26,8 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     @param window (integer): the median window value to look at SNPs
     @param vcfpath (string): file path to vcf file
     @param chisq_path (string): file path to chi squared file
+    @param lowerlimit (int): lower limit of chromosome analysis range
+    @param upperlimit (int): upper limit of chromosome analysis range
     @return finalSNPlist (SNP list): a list of SNP objects with b* values
 
     DEVELOPMENT NOTES: 
@@ -38,11 +40,10 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     """
     # STEP 1 ----------
     # Set up counters, lists, and variables
-    # LineID = []                 # For holding column names (headers) from VCF file, TODO remove - NOT USED
     Locations = []              # ?
     zraw = []                   # Holds Z scores from divergence
     accepted_snps = []          # Number of accepted SNPs    
-    outcomes = [0,0,0]          # ?
+    outcomes = [0,0,0]          # Keeps track of # SNPs passed, # SNPs with frequency of 1 or 0, and # SNPs carried on for B analysis
     z_std = []                  # For standardized divergence. Use to store diverge until we get a vdiv and then go back through to calculate standardized divergence
         
     output_snps = []            # from C# code, for holding output snps
@@ -52,7 +53,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     Var_snp_specific = 0.0      # ?
     num_snps = 0                # Number of all SNPs counter, not just accepted SNPs
 
-    out0 = open("Results" + str(6) + ".txt", "w") #a more verbose out3
+    out0 = open("Results" + str(6) + ".txt", "w") # a more verbose out3
     out3 = open("B" + str(6) + ".txt", "w")
 
     # STEP 2 ----------
@@ -66,7 +67,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
         df.append(float(cols[0]))
         # bs.append(float(cols[1]))
         for j in range(9):
-            percentiles[line_idx].append(float(cols[j+1]))
+            percentiles[line_idx].append(float(cols[j + 1]))
         rx = (percentiles[line_idx][2] + percentiles[line_idx][0] - 2 * percentiles[line_idx][1]) / (percentiles[line_idx][2] - percentiles[line_idx][0])
         bs.append(rx)
 
@@ -74,27 +75,19 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     # Evaluate contents of each line of the VCF input file          
     for line_idx, line in enumerate(vcfpath):
         cols = line.replace('\n', '').split('\t') # Get rid of newlines and empty spaces, then use the tab delimiter for array
-        # Should be contig row... these list contigs and have no data for use
         if len(cols) < 2: 
             continue # Skip the meta section (file description, definitions, contig info, etc)
         elif cols[0] == "#CHROM":       # this is the header row for the variant sample data
             for i in range(len(cols)):
                 print(i, cols[i])
-                
-                # TODO remove this, LineID never used.
-                #if i > 8:
-                #    LineID.append(cols[i]) # saves the sample header name (eg. 767.sorted.bam, CA.rmdup.bam CB.rmdup.bam, S.rmdup.bam, TA.rmdup.bam, TB.rmdup.bam
 
         else:              
-            # Get the actual chromosome number out of the first column
+            # Get the actual chromosome number out of the first column by removing the "sNNafold_"
             chromosome = cols[0]        # snnafold_x
             chromosome = chromosome[9:] # x (we got rid of everything so it's just the number)
 
-
-            # TODO here, put some user-defined variables for chomosome range. if lowerlimit <= chromosome or chromosome <= upperlimit
-            #if int(chromosome) < 15:    # Many more contigs than chromosomes - we're only looking between chr 1 and 14 for meaningful data.
+            # Analyze the chromosomes in the user-defined range
             if lowerlimit <= int(chromosome) and int(chromosome) <= upperlimit:   
-                scaff = cols[0].split('_')
                 position = int(cols[1]) # grab the base pair
                 ref_base = cols[3]      # the reference base allele
                 alt_base = cols[4]      # the alternate base allele
