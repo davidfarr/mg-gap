@@ -13,6 +13,7 @@ import Window
 
 # NOTE don't want b values of over about 400.
 # Want calculations to be with in 5 significant figures.
+# NOTE perhaps create a user input text file where user can enter chromosom range and minimum reads number
 
     # ------------------------------------- BEGIN VCF ANALYZER --------------------------------------------- #
   
@@ -43,7 +44,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     Locations = []              # ?
     zraw = []                   # Holds Z scores from divergence
     accepted_snps = []          # Number of accepted SNPs    
-    outcomes = [0,0,0]          # Keeps track of # SNPs passed, # SNPs with frequency of 1 or 0, and # SNPs carried on for B analysis
+    outcomes = [0,0,0]          # Keeps track of [# SNPs passed, # SNPs with frequency of 1 or 0, and # SNPs carried on for B analysis]
     z_std = []                  # For standardized divergence. Use to store diverge until we get a vdiv and then go back through to calculate standardized divergence
         
     output_snps = []            # from C# code, for holding output snps
@@ -65,7 +66,6 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     for line_idx, line in enumerate(chisq_path):
         cols = line.replace('\n', '').split('\t')    
         df.append(float(cols[0]))
-        # bs.append(float(cols[1]))
         for j in range(9):
             percentiles[line_idx].append(float(cols[j + 1]))
         rx = (percentiles[line_idx][2] + percentiles[line_idx][0] - 2 * percentiles[line_idx][1]) / (percentiles[line_idx][2] - percentiles[line_idx][0])
@@ -74,7 +74,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     # STEP 3 ----------
     # Evaluate contents of each line of the VCF input file          
     for line_idx, line in enumerate(vcfpath):
-        cols = line.replace('\n', '').split('\t') # Get rid of newlines and empty spaces, then use the tab delimiter for array
+        cols = line.replace('\n', '').split('\t') # Get rid of newlines at the end of each line, then split each line on the tab 
         if len(cols) < 2: 
             continue # Skip the meta section (file description, definitions, contig info, etc)
         elif cols[0] == "#CHROM":       # this is the header row for the variant sample data
@@ -83,12 +83,14 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
 
         else:              
             # Get the actual chromosome number out of the first column by removing the "sNNafold_"
-            chromosome = cols[0]        # snnafold_x
+            # NOTE general use issue, not all VCF files will have the "sNNffold_"
+            # TODO fix this ^ - read the number only from this column, ignore non digit characters
+            chromosome = cols[0]        # sNNffold_x, where x is the number
             chromosome = chromosome[9:] # x (we got rid of everything so it's just the number)
 
             # Analyze the chromosomes in the user-defined range
             if lowerlimit <= int(chromosome) and int(chromosome) <= upperlimit:   
-                position = int(cols[1]) # grab the base pair
+                position = int(cols[1]) # grab the base pair position
                 ref_base = cols[3]      # the reference base allele
                 alt_base = cols[4]      # the alternate base allele
 
@@ -97,43 +99,58 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                     outcomes[0] += 1    # Pass this SNP
                 else:
                     # Set up more counters
-                    C_count = 0
-                    C_dat = []
-                    T_count = 0
-                    T_dat = []
-                                                        # TODO address skipping the 767 bam for more general purpose
+                    c_count = 0      # control sample count
+                    c_data = []      # control Allele Depth data
+                    t_count = 0      # test sample count
+                    t_data = []      # test Allele Depth data
+                                                        
+                    # NOTE are skipping a sample column, not all reserachers will want to skip this column
+                    # TODO re-create ali vcf without the 767, make note in user manual that users must create vcf's that 
+                    # contain only samples they want to look at
                     for j in range(10, len(cols)):      # ali_w_767.vcf... keep in mind that the data *structure* difference between ali.vcf and w/767 is the 767 bam file is the first bam column index, so must add +1 to all the indexes that referenced bam file cols. Skip 767 which is column 10.
                         info = cols[j].split(':')       # split the info column that has AD on col[1]
-                        if len(info) == 5 and (j < 13): # ali_w_767.vcf
-                            AD = info[1].split(",")
-                            if int(AD[0]) + int(AD[1]) > 0:
-                                C_count += 1
-                                C_dat.append(int(AD[0]))
-                                C_dat.append(int(AD[1]))
-                        if len(info) == 5 and (j > 12): # ali_w_767.vcf
-                            AD = info[1].split(",")
-                            if int(AD[0]) + int(AD[1]) > 0:
-                                T_count += 1
-                                T_dat.append(int(AD[0]))
-                                T_dat.append(int(AD[1]))
+                                              
+                        # len(info) == 5 skips over columns with no data ("./."), j < 13 only looks at samples CA, CB, and S
+                        # TODO this is a general use issue. Not all data will have 5 columns of samples
+                        if len(info) == 5 and (j < 13): 
+                            AD = info[1].split(",")             # AD = allele depth
+                            if int(AD[0]) + int(AD[1]) > 0:     # AD[0] is number of reads that support ref allele, AD[1] is number of reads that support alt allele
+                                c_count += 1
+                                c_data.append(int(AD[0]))
+                                c_data.append(int(AD[1]))
+                        
+                        # len(info) == 5 skips over columns with no data ("./."), j > 12 only looks at samples TA and TB
+                        # TODO this is a general use issue. Not all data will have 5 columns of samples
+                        if len(info) == 5 and (j > 12): 
+                            AD = info[1].split(",")             # AD = allele depth
+                            if int(AD[0]) + int(AD[1]) > 0:     # AD[0] is number of reads that support the ref allele, AD[1] is number of reads that support the alt allele
+                                t_count += 1
+                                t_data.append(int(AD[0]))
+                                t_data.append(int(AD[1]))
 
-                    if C_count >= 0 and T_count >= 0:
-                        qC = [0.0, 0.0]
-                        qT = [0.0, 0.0]                              
+                    if c_count >= 0 and t_count >= 0: 
+                        qC = [0.0, 0.0]     # control group: ref base allele depth, ref+alt base allele depth
+                        qT = [0.0, 0.0]     # test group: ref base allele depth, ref+alt base allele depth                        
 
-                        for j in range(len(C_dat) // 2):
-                            m = C_dat[2 * j] + C_dat[2 * j + 1]
-                            qC[0] += float(C_dat[2 * j])    # ref base
-                            qC[1] += float(m)               # ref + alt base
-                        for j in range(len(T_dat) // 2):
-                            m = T_dat[2 * j] + T_dat[2 * j + 1]
-                            qT[0] += float(T_dat[2 * j])
-                            qT[1] += float(m)
+                        # Control Samples 
+                        # NOTE can this be simpler? We are already getting the reference base into t_data, why get it AGAIN to put into qC[0]? Also assign qC[1] earlier too
+                        for j in range(len(c_data) // 2):
+                            m = c_data[2 * j] + c_data[2 * j + 1]
+                            qC[0] += float(c_data[2 * j])    # ref base
+                            qC[1] += float(m)                # ref + alt base
+
+                        # Test Samples
+                        for j in range(len(t_data) // 2):
+                            m = t_data[2 * j] + t_data[2 * j + 1]
+                            qT[0] += float(t_data[2 * j])   # ref base
+                            qT[1] += float(m)               # ref + alt bases
 
                         if (qT[1] >= min_reads and qC[1] >= min_reads):
+
                             # Get this first so we can tell if it actually works to take the SNP
-                            qC_hat = qC[0] / qC[1]
-                            qT_hat = qT[0] / qT[1]
+                            qC_hat = qC[0] / qC[1]  # control group: ref base AD / ref+alt base AD
+                            qT_hat = qT[0] / qT[1]  # test group: ref base AD / ref+alt base AD
+                            
                             if (qC_hat != 0 and qC_hat != 1 and qT_hat != 0 and qT_hat != 1):
                                 # columns: scaffold, position, ref allele count 1, total count 1,ref allele count 2, total count 2
                                 outcomes[2] += 1
