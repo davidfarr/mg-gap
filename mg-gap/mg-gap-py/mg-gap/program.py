@@ -12,8 +12,8 @@ import Window
 
 
 # NOTE don't want b values of over about 400.
-# Want calculations to be with in 5 significant figures.
-# NOTE perhaps create a user input text file where user can enter chromosom range and minimum reads number
+# Want calculations to be with in 5 significant figures of results from C# code
+# NOTE perhaps create a user input text file where user can enter chromosome range and minimum reads number
 
     # ------------------------------------- BEGIN VCF ANALYZER --------------------------------------------- #
   
@@ -41,24 +41,28 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     """
     # STEP 1 ----------
     # Set up counters, lists, and variables
-    Locations = []              # ?
+    Locations = []              # Holds locations of accepted SNPs
     zraw = []                   # Holds Z scores from divergence
-    accepted_snps = []          # Number of accepted SNPs    
+    #accepted_snps = []          # Number of accepted SNPs    
     outcomes = [0,0,0]          # Keeps track of [# SNPs passed, # SNPs with frequency of 1 or 0, and # SNPs carried on for B analysis]
     z_std = []                  # For standardized divergence. Use to store diverge until we get a vdiv and then go back through to calculate standardized divergence
         
-    output_snps = []            # from C# code, for holding output snps
-    trimmed_snps = []           # from C# code, for after B*
+    output_snps = []            # for holding accepted snps for output
+    trimmed_snps = []           # for after looking at B* value
         
     min_reads = 20              # User may define option for this - seems standard but may need to be adjusted if data is nanopore sequenced... will revisit.
     Var_snp_specific = 0.0      # ?
     num_snps = 0                # Number of all SNPs counter, not just accepted SNPs
 
     out0 = open("Results" + str(6) + ".txt", "w") # a more verbose out3
+    out0.write("Chromosome\tPOS\tC AD\tControl qC_hat\tT AD\tTest qT_hat\tDivergence\n")                     
+                       
     out3 = open("B" + str(6) + ".txt", "w")
+    out3.write("Chromosome_Position\tB Value\tB* Value\tP Value\n")
 
     # STEP 2 ----------
     # Enumerate chisq file
+    # TODO NOTE: probably only have to do this once in the program
     print("Assembling chi square apparatus...")
     bs = [] 
     df = []
@@ -129,17 +133,17 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                                 t_data.append(int(AD[1]))
 
                     if c_count >= 0 and t_count >= 0: 
-                        qC = [0.0, 0.0]     # control group: ref base allele depth, ref+alt base allele depth
-                        qT = [0.0, 0.0]     # test group: ref base allele depth, ref+alt base allele depth                        
+                        qC = [0.0, 0.0]     # control group: [ref base allele depth, ref base + alt base allele depth]
+                        qT = [0.0, 0.0]     # test group: [ref base allele depth, ref base + alt base allele depth]                      
 
-                        # Control Samples 
+                        # Control populations samples 
                         # NOTE can this be simpler? We are already getting the reference base into t_data, why get it AGAIN to put into qC[0]? Also assign qC[1] earlier too
                         for j in range(len(c_data) // 2):
                             m = c_data[2 * j] + c_data[2 * j + 1]
                             qC[0] += float(c_data[2 * j])    # ref base
                             qC[1] += float(m)                # ref + alt base
 
-                        # Test Samples
+                        # Test populations samples
                         for j in range(len(t_data) // 2):
                             m = t_data[2 * j] + t_data[2 * j + 1]
                             qT[0] += float(t_data[2 * j])   # ref base
@@ -148,21 +152,19 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                         if (qT[1] >= min_reads and qC[1] >= min_reads):
 
                             # Get this first so we can tell if it actually works to take the SNP
-                            qC_hat = qC[0] / qC[1]  # control group: ref base AD / ref+alt base AD
-                            qT_hat = qT[0] / qT[1]  # test group: ref base AD / ref+alt base AD
+                            qC_hat = qC[0] / qC[1]  # control groups: ref base AD / ref base + alt base AD
+                            qT_hat = qT[0] / qT[1]  # test groups: ref base AD / ref base + alt base AD
                             
-                            if (qC_hat != 0 and qC_hat != 1 and qT_hat != 0 and qT_hat != 1):
-                                # columns: scaffold, position, ref allele count 1, total count 1,ref allele count 2, total count 2
+                            if (qC_hat != 0 and qC_hat != 1 and qT_hat != 0 and qT_hat != 1):                 
                                 outcomes[2] += 1
                                 Locations.append(cols[0] + "_" + cols[1])
                                 num_snps += 1
-                                var_C = 1.0 / qC[1]     # transformed variance of C
-                                var_T = 1.0 / qT[1]     # for T
+                                var_C = 1.0 / qC[1]     # transformed variance of C population
+                                var_T = 1.0 / qT[1]     # transformed vairance of T population
 
-                                Var_snp_specific += (var_C + var_T)
-                                #vdiv = Var_neutral + var_C + var_T
+                                Var_snp_specific += (var_C + var_T)                                
 
-                                # Calculate divergence, NOTE do we want to add zranked here?
+                                # Calculate divergence
                                 diverge = 2.0 * (math.asin(qT_hat**0.5) - math.asin(qC_hat**0.5))
                                 out0.write(cols[0] + '\t' + cols[1] + '\t' + str(qC[1]) + '\t' + str(qC_hat) + '\t' + str(qT[1]) + '\t' + str(qT_hat) + '\t' + str(diverge) + '\n')
                                 if random.randrange(1, 3) == 1:
@@ -172,18 +174,17 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                                     
                                 z_std.append(diverge)
 
-                                #Major change:
-                                #vdiv used to be calculated here, but it was based off the var_neutral that was highly specific and precalculated in
-                                #the original python script - changing the window size would have resulted in an incorrect var_neutral.
-                                #The solution was to keep a seperate list of only (+) diverge and calculate it programmatically after we get the z percentiles
-
-                                accepted_snps.append([cols[0] + "_" + cols[1], var_C, var_T])
-                                    
-                                # NOTE this block was added following the C# code                        
+                                # NOTE from original code:
+                                # vdiv used to be calculated here, but it was based off the var_neutral that was highly specific and precalculated in
+                                # the original python script - changing the window size would have resulted in an incorrect var_neutral.
+                                # The solution was to keep a seperate list of only (+) diverge and calculate it programmatically after we get the z percentiles
+                                #vdiv = Var_neutral + var_C + var_T
+                      
                                 # We have the data we need, create a SNP and add to the output list
                                 t_C_pop = math.asin(math.sqrt(qC_hat)) # transformed variance for C population
                                 t_T_pop = math.asin(math.sqrt(qT_hat)) # transformed variance for T population
 
+                                # Create a new SNP object
                                 acceptedSNP = SNP.SNP()
                                 acceptedSNP.chromosome = chromosome
                                 acceptedSNP.basepair = position
@@ -197,6 +198,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                             else:
                                 outcomes[1] += 1
 
+                        # Printing file processing progress to console
                         if line_idx % 100000 == 0:
                             print(cols[0], line_idx)
 
@@ -204,10 +206,10 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     # Report on VCF file evaluation
     print("Outcomes: ", outcomes)
     print("Included: Number of SNPs ", num_snps)
-    print("Accepted: Number of SNPs ", len(output_snps)) # from C# code        
+    print("Accepted: Number of SNPs ", len(output_snps))      
     print("Sampling/genotyping variance: ", Var_snp_specific / float(num_snps))
         
-    # Sort z list (only the one actually for ranking)
+    # Sort z raw list 
     ranked_z = sorted(zraw)
     n25 = ranked_z[int(num_snps / 4)]
     n50 = ranked_z[int(num_snps / 2)]
@@ -217,19 +219,19 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     print("Z percentiles (without direction): ", n25, n50, n75)
     print("Total variance in Z (based on IQR): ",((n75 - n25) / 1.349)**2)
     print("Number skipped to do > 1 base at site: %s\n"          % outcomes[0] +
-            "Number of SNPs with population freq. of 1 or 0: %s\n" % outcomes[1] +
-            "Number of SNPs carried for B analysis: %s"            % outcomes[2] )
+          "Number of SNPs with population freq. of 1 or 0: %s\n" % outcomes[1] +
+          "Number of SNPs carried for B analysis: %s"            % outcomes[2] )
     Var_neutral = ((n75 - n25) / 1.349)**2 - Var_snp_specific/float(num_snps)  # this is the bulk variance
     print("Bulk sampling and library variance ", Var_neutral)
 
     # Run through all accepted SNPs to calculate standardized divergence ^ 2 :: B for 1 snp
 
-    # Major Change:
+    # NOTE from original code:
     # Since we only just got var neutral now we need to go back through the z_std list with only the (+) divergence and
     # finish the calculation to standardize and keep going
 
-    for k in range(0, len(z_std)):
-        vdiv = Var_neutral + accepted_snps[k][1] + accepted_snps[k][2]
+    for k in range(0, len(z_std)): 
+        vdiv = Var_neutral + output_snps[k].c_variance + output_snps[k].t_variance
         z_std[k] = z_std[k] / (abs(vdiv)**0.5)    # NOTE do we need to add abs() here? 3/10/19
 
     ranked_z = sorted(z_std)
@@ -258,19 +260,18 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     for k in range(window, num_snps):
         if k % window == 0 or k % window == window / 2:
                 
-            # set up window info (added in from C# code)
+            # set up window info
             new_window = Window.Window()
             new_window.chromosome = output_snps[k].chromosome
             new_window.window_size = k
 
-            vdiv = Var_neutral + accepted_snps[k][1] + accepted_snps[k][2]
+            vdiv = Var_neutral + output_snps[k].c_variance + output_snps[k].t_variance
             b = 0.0
             for j in range(window): # This is the part specifically that iterates through each window
                 b += ( z_std[k-j]**2 )
                     
                 new_window.snps.append(output_snps[k]) # add the snp to the list
             
-            # from C# code
             all_window_SNPs.append(new_window) # TEST
             output_snps[k].b_standard = b
             snploc.append(output_snps[k]) # adds the last snp of the window with value b
@@ -337,7 +338,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
 
         out3.write(midpoint + '\t' + str(bx) + '\t' + str(bs) + '\t' + str(p) + '\n')
         
-    # TODO write the test data from snp window
+    # TODO write the test data from snp window -- ASK WHAT THIS MEANS
     # Allows to keep track of whole window, otherwise losing 66 % of window details
        
     # Remove all where there is no b* i.e. b_star is less than or equal to 0      
