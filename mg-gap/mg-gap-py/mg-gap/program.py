@@ -16,34 +16,34 @@ import Window
 # NOTE perhaps create a user input text file where user can enter chromosome range and minimum reads number
 
     # ------------------------------------- BEGIN VCF ANALYZER --------------------------------------------- #
-  
+"""
+Function: VCF_Analyzer
+
+Description: Reads the VCF. Create a list of SNP's with their info
+in a method and return the "list" of SNPs back to the main program file.
+
+@param window (integer): the median window value to look at SNPs
+@param vcfpath (string): file path to vcf file
+@param chisq_path (string): file path to chi squared file
+@param lowerlimit (int): lower limit of chromosome analysis range
+@param upperlimit (int): upper limit of chromosome analysis range
+@return finalSNPlist (SNP list): a list of SNP objects with b* values
+
+DEVELOPMENT NOTES: 
+    - it is very long. Maybe we can break it up into separate, smaller methods.
+    - when translating, replaced S with window, src with vcfpath, in1 with chisq_path
+    - maybe move some of the STEPS into their own functions for ease of reading and testing
+    - a couple counters, total_counter and skip_counter are used in the C#, do we want to put this
+    back in?
+    - there's a note at the end of this code too, but do we want to write the test data from snp window?
+"""  
 def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
-    """
-    Function: VCF_Analyzer
 
-    Description: Reads the VCF. Create a list of SNP's with their info
-    in a method and return the "list" of SNPs back to the main program file.
-
-    @param window (integer): the median window value to look at SNPs
-    @param vcfpath (string): file path to vcf file
-    @param chisq_path (string): file path to chi squared file
-    @param lowerlimit (int): lower limit of chromosome analysis range
-    @param upperlimit (int): upper limit of chromosome analysis range
-    @return finalSNPlist (SNP list): a list of SNP objects with b* values
-
-    DEVELOPMENT NOTES: 
-     - it is very long. Maybe we can break it up into separate, smaller methods.
-     - when translating, replaced S with window, src with vcfpath, in1 with chisq_path
-     - maybe move some of the STEPS into their own functions for ease of reading and testing
-     - a couple counters, total_counter and skip_counter are used in the C#, do we want to put this
-     back in?
-     - there's a note at the end of this code too, but do we want to write the test data from snp window?
-    """
     # STEP 1 ----------
     # Set up counters, lists, and variables
     Locations = []              # Holds locations of accepted SNPs
     zraw = []                   # Holds Z scores from divergence
-    #accepted_snps = []          # Number of accepted SNPs    
+    #accepted_snps = []         # Number of accepted SNPs    
     outcomes = [0,0,0]          # Keeps track of [# SNPs passed, # SNPs with frequency of 1 or 0, and # SNPs carried on for B analysis]
     z_std = []                  # For standardized divergence. Use to store diverge until we get a vdiv and then go back through to calculate standardized divergence
         
@@ -51,7 +51,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     trimmed_snps = []           # for after looking at B* value
         
     min_reads = 20              # User may define option for this - seems standard but may need to be adjusted if data is nanopore sequenced... will revisit.
-    Var_snp_specific = 0.0      # ?
+    Var_snp_specific = 0.0      # Used to store total variance for control and test populations
     num_snps = 0                # Number of all SNPs counter, not just accepted SNPs
 
     out0 = open("Results" + str(6) + ".txt", "w") # a more verbose out3
@@ -62,7 +62,8 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
 
     # STEP 2 ----------
     # Enumerate chisq file
-    # TODO NOTE: probably only have to do this once in the program
+    # TODO Move to independent function and save to file
+    # Called twice from main, but only have to do this once
     print("Assembling chi square apparatus...")
     bs = [] 
     df = []
@@ -111,33 +112,38 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                     # NOTE are skipping a sample column, not all reserachers will want to skip this column
                     # TODO re-create ali vcf without the 767, make note in user manual that users must create vcf's that 
                     # contain only samples they want to look at
-                    for j in range(10, len(cols)):      # ali_w_767.vcf... keep in mind that the data *structure* difference between ali.vcf and w/767 is the 767 bam file is the first bam column index, so must add +1 to all the indexes that referenced bam file cols. Skip 767 which is column 10.
+                    for j in range(10, len(cols)):      # Skip ali_w_767.vcf
                         info = cols[j].split(':')       # split the info column that has AD on col[1]
                                               
-                        # len(info) == 5 skips over columns with no data ("./."), j < 13 only looks at samples CA, CB, and S
-                        # TODO this is a general use issue. Not all data will have 5 columns of samples
+                        # Get data from Control Sample column(s)
+                        # NOTE "len(info) == 5" skips over columns with no data ("./.")
+                        # NOTE "j < 13" only looks at samples CA, CB, and S
+                        # TODO this is a general use issue. Not all data will have 5 columns of samples.
                         if len(info) == 5 and (j < 13): 
                             AD = info[1].split(",")             # AD = allele depth
-                            if int(AD[0]) + int(AD[1]) > 0:     # AD[0] is number of reads that support ref allele, AD[1] is number of reads that support alt allele
+                            if int(AD[0]) + int(AD[1]) > 0:     
                                 c_count += 1
-                                c_data.append(int(AD[0]))
-                                c_data.append(int(AD[1]))
+                                c_data.append(int(AD[0]))       # AD[0] is number of reads that support ref allele
+                                c_data.append(int(AD[1]))       # AD[1] is number of reads that support alt allele
                         
-                        # len(info) == 5 skips over columns with no data ("./."), j > 12 only looks at samples TA and TB
-                        # TODO this is a general use issue. Not all data will have 5 columns of samples
+                        # Get data from Test Sample column(s)
+                        # NOTE "len(info) == 5" skips over columns with no data ("./.")
+                        # NOTE "j > 12" only looks at samples TA and TB
+                        # TODO this is a general use issue. Not all data will have 5 columns of samples.
                         if len(info) == 5 and (j > 12): 
-                            AD = info[1].split(",")             # AD = allele depth
-                            if int(AD[0]) + int(AD[1]) > 0:     # AD[0] is number of reads that support the ref allele, AD[1] is number of reads that support the alt allele
+                            AD = info[1].split(",")             # AD = Allele Depth
+                            if int(AD[0]) + int(AD[1]) > 0:     
                                 t_count += 1
-                                t_data.append(int(AD[0]))
-                                t_data.append(int(AD[1]))
+                                t_data.append(int(AD[0]))       # AD[0] is number of reads that support the ref allele
+                                t_data.append(int(AD[1]))       # AD[1] is number of reads that support the alt allele
 
                     if c_count >= 0 and t_count >= 0: 
                         qC = [0.0, 0.0]     # control group: [ref base allele depth, ref base + alt base allele depth]
                         qT = [0.0, 0.0]     # test group: [ref base allele depth, ref base + alt base allele depth]                      
 
                         # Control populations samples 
-                        # NOTE can this be simpler? We are already getting the reference base into t_data, why get it AGAIN to put into qC[0]? Also assign qC[1] earlier too
+                        # NOTE can this be simpler? We are already getting the reference base into t_data.
+                        # Why get it AGAIN to put into qC[0]? Also assign qC[1] earlier too.
                         for j in range(len(c_data) // 2):
                             m = c_data[2 * j] + c_data[2 * j + 1]
                             qC[0] += float(c_data[2 * j])    # ref base
@@ -173,14 +179,8 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                                     zraw.append(-diverge)
                                     
                                 z_std.append(diverge)
-
-                                # NOTE from original code:
-                                # vdiv used to be calculated here, but it was based off the var_neutral that was highly specific and precalculated in
-                                # the original python script - changing the window size would have resulted in an incorrect var_neutral.
-                                # The solution was to keep a seperate list of only (+) diverge and calculate it programmatically after we get the z percentiles
-                                #vdiv = Var_neutral + var_C + var_T
                       
-                                # We have the data we need, create a SNP and add to the output list
+                                # Transform variance for each the control and test populations
                                 t_C_pop = math.asin(math.sqrt(qC_hat)) # transformed variance for C population
                                 t_T_pop = math.asin(math.sqrt(qT_hat)) # transformed variance for T population
 
@@ -202,8 +202,10 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
                         if line_idx % 100000 == 0:
                             print(cols[0], line_idx)
 
+
     # STEP 4 ----------
     # Report on VCF file evaluation
+    # Calculate standarized divergence
     print("Outcomes: ", outcomes)
     print("Included: Number of SNPs ", num_snps)
     print("Accepted: Number of SNPs ", len(output_snps))      
@@ -225,15 +227,11 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     print("Bulk sampling and library variance ", Var_neutral)
 
     # Run through all accepted SNPs to calculate standardized divergence ^ 2 :: B for 1 snp
-
-    # NOTE from original code:
-    # Since we only just got var neutral now we need to go back through the z_std list with only the (+) divergence and
-    # finish the calculation to standardize and keep going
-
     for k in range(0, len(z_std)): 
         vdiv = Var_neutral + output_snps[k].c_variance + output_snps[k].t_variance
         z_std[k] = z_std[k] / (abs(vdiv)**0.5)    # NOTE do we need to add abs() here? 3/10/19
-
+    
+    # Storing standardized divergence
     ranked_z = sorted(z_std)
     n25 = ranked_z[int(num_snps / 4)]
     n50 = ranked_z[int(num_snps / 2)]
@@ -243,17 +241,16 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     print("VCF read complete, starting analysis...")
 
 
-    # STEP 5: Analysis
-    snploc = [] # a list to hold SNP objects
-
-    # List for B and a list to sort B
-    Braw = []
-    Bloc = []
+    # STEP 5 ---------- 
+    # Analysis
+    snploc = []     # List to hold SNP objects     
+    Braw = []       # List for B values
+    Bloc = []       # List to sort B
 
     print("Calculating B for %s SNPs..." % outcomes[2])
 
     # To grab the bp position of each of the snps in the window,
-    # let's generate a new snp list to output
+    # generate a new snp list to output
 
     all_window_SNPs = [] # a list to hold Window objects
 
@@ -338,7 +335,7 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
 
         out3.write(midpoint + '\t' + str(bx) + '\t' + str(bs) + '\t' + str(p) + '\n')
         
-    # TODO write the test data from snp window -- ASK WHAT THIS MEANS
+    # TODO write the test data from snp window 
     # Allows to keep track of whole window, otherwise losing 66 % of window details
        
     # Remove all where there is no b* i.e. b_star is less than or equal to 0      
@@ -353,22 +350,23 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
 
 # ------------------------------------- BEGIN FDR ANALYSIS --------------------------------------------- #
 
+"""
+Function: FDR
+
+Description: 
+The FDR process is:
+    1. Sort B* list by p-value
+    2. Add new property FDR where FDR = 0.1 * index of the ranked SNP / (count of SNPs in the file / 2)
+    3*. FDR can be changed... 0.1 above is FDR of 10 and 0.05 is FDR 5
+
+@param bs_list (SNP object list): the list of SNPs with b* values
+@param fdr_selected - TODO need to learn more about FDR
+@return sorted_list (SNP object list): a list of SNPs with significant b* values
+
+Editing thoughts for later: TODO request to use FDR analyzer in R instead.
+""" 
 def process(bs_list, fdr_selected):
-    """
-    Function: FDR
-
-    Description: 
-    The FDR process is:
-        1. Sort B* list by p-value
-        2. Add new property FDR where FDR = 0.1 * index of the ranked SNP / (count of SNPs in the file / 2)
-        3*. FDR can be changed... 0.1 above is FDR of 10 and 0.05 is FDR 5
-
-    @param bs_list (SNP object list): the list of SNPs with b* values
-    @param fdr_selected - TODO need to learn more about FDR
-    @return sorted_list (SNP object list): a list of SNPs with significant b* values
-
-    Editing thoughts for later: TODO request to use FDR analyzer in R instead.
-    """  
+ 
     sorted_list = sorted(bs_list, key = lambda snp: snp.raw_p)
         
     rank_assignment = 1
@@ -392,7 +390,8 @@ def process(bs_list, fdr_selected):
     print("\n%s SNPs removed below FDR threshold leaving %s" % (pre_removal_length, len(sorted_list)) )
 
     # Now show the sig b*
-    print("\nSignificant B* (the min B* after removing SNPs over threshold) %s" % min(sorted_list, key = lambda snp: snp.b_star)) # TODO this prints out an address, needs to do a string
+    min_threshold = min(sorted_list, key = lambda snp: snp.b_star)
+    print("\nSignificant B* (the min B* after removing SNPs over threshold) {}".format(min_threshold.b_star)) 
 
     return sorted_list # return a list of SNPs
 
@@ -468,10 +467,14 @@ Guide to splinewindows format
    * 5 = W statistic
    * first row is headers, skip
 """
+# TODO change file paths to use "os.path.join(sys.path[0], "myFileName.txt")" - This will help with cross platform usage
 #splinepath = "D:/MG_GAP/mg-gap/mg-gap/mg-gap-py/mg-gap/splinewindows.txt" # Personal home PC
 splinepath = "C:/Users/gammonh/Documents/GitHub/mg-gap/mg-gap/mg-gap-py/mg-gap/splinewindows.txt" # Grad lab office PC
+
 print("GenWin file found, obtaining median window value...")
-windows = []
+
+windows = [] # List to hold window sizes to find median value
+
 try:
     with open(splinepath, "r") as sp:
         sp.readline() # read past the header line
