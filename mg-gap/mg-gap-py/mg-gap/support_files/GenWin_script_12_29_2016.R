@@ -2,8 +2,8 @@
 #A. Scoville 12_29_2016
 
 #download and install packages the first time
-install.packages("tidyr")
-install.packages("GenWin")
+#install.packages("tidyr")
+#install.packages("GenWin")
 
 #load packages
 library(tidyr)  #for pre-processing; contains function separate
@@ -14,7 +14,8 @@ library(GenWin) #for spline-based window analysis
 #setwd("N:\\app dev\\scoville research\\program files\\github repo\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
 #setwd("C:\\Users\\David\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap\\bin\\Debug")
 #setwd("D:\\MG_GAP\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
-setwd("C:\\Users\\gammonh\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
+#setwd("C:\\Users\\gammonh\\Documents\\GitHub\\mg-gap\\mg-gap\\mg-gap-py\\mg-gap")
+setwd("..\\results\\")
 
 file <- read.table("B1_new.txt", header=TRUE)
   
