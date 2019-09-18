@@ -49,21 +49,21 @@ file$CHR <- as.numeric(file$CHR)
 windowsList <- list()
 
 for(input in CHRnames){
-  print("doing windows")
+  #print("doing windows")
   #take data from a single chromosome and make sure it is ordered by base pair
   window1 <- subset(file, CHR==input)
   window1 <- window1[order(window1$BP),]
   
-  print("doing spline")
+  #print("doing spline")
   #use GenWin program to identify windows.  We may want to try different smoothness levels
   spline <- splineAnalyze(Y=window1$B,map=window1$BP,smoothness=100, plotRaw=FALSE,plotWindows=FALSE,method=4)
   
-  print("adding columns to spline window data")
+  #print("adding columns to spline window data")
   #add a column to the spline$windowData output to identify the chromosome under consideration
   CHRcol <- rep(input,dim(spline$windowData)[1])
   spline$windowData <- cbind(CHRcol,spline$windowData)
   
-  print("adding spline window data to windows list")
+  #print("adding spline window data to windows list")
   #add the output to a list of output from all chromosomes
   windowsList[[input]] <- spline$windowData
 }

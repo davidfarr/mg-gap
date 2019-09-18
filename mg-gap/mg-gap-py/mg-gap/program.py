@@ -319,8 +319,8 @@ def VCF_Analyzer(window, vcfpath, chisq_path, lowerlimit, upperlimit):
     print("cIQR {} \nsigB {}".format(cIQR, sigB))
 
     print("Calculating B* for {} SNPs".format(len(Braw)))
-    for j in range(len(ranked_B)):
-        bx = Braw[j]
+    for j in range(len(ranked_B)):  # ranked b is the same length as Braw
+        bx = Braw[j]                # bx is the same as Braw, which is the same as b_standard
         bs = m + (bx - window) * ((2 * m)**0.5) / sigB        
 
         if bs < percentiles[jstar][3]: # p greater than 0.05
@@ -396,6 +396,8 @@ def process(bs_list, fdr_selected):
     for snp in sorted_list:
         snp.threshhold_value = (fdr_selected * snp.fdr_rank) / num_window 
 
+    # Are we even doing anything with this bs_list after we assign a threshold value?
+    # Seems like we are just trimming and returning the sorted list after this block.
     bs_capacity = len(bs_list)
     for i in range(0, len(bs_list)):
         bs_list[i].threshold_value = fdr_selected * (i + 1) / (bs_capacity / 2)
@@ -423,8 +425,8 @@ def process(bs_list, fdr_selected):
 #  - NOTE for testing, enter the correct paths
 start_recording = time.time()
 try:
-    #vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/REDUCED_ali.vcf")), "r")
-    vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/Ali_w_767.vcf")), "r")
+    vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/REDUCED_ali.vcf")), "r")
+    #vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/Ali_w_767.vcf")), "r")
     chisq_path = open(path.abspath(path.join(sys.path[0], "support_files/chisq.txt")), "r")
 
 except IOError:
@@ -539,8 +541,8 @@ except:
 #  - make a tab .csv
 #median = 6 # TODO remove this - for testing only
 try:
-    #vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/REDUCED_ali.vcf")), "r")
-    vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/Ali_w_767.vcf")), "r")
+    vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/REDUCED_ali.vcf")), "r")
+    #vcf_path = open(path.abspath(path.join(sys.path[0], "test_files/Ali_w_767.vcf")), "r")
     chisq_path = open(path.abspath(path.join(sys.path[0], "support_files/chisq.txt")), "r")
 
 except IOError:
